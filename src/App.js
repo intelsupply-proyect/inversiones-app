@@ -1181,6 +1181,34 @@ function PortalMovimientos({ profileId }) {
   );
 }
 
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function Nav({ perfil, tab, setTab, tabs, onLogout, accentColor }) {
+  return (
+    <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 100 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 16px", display: "flex", alignItems: "center", gap: 4, height: 56 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginRight: "auto" }}>
+          <div style={{ width: 32, height: 32, borderRadius: 9, background: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>💼</div>
+          <span style={{ fontWeight: 800, fontSize: 15, color: "#0f172a" }}>InvestAdmin</span>
+        </div>
+        <div style={{ display: "flex", gap: 2 }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{ border: "none", background: tab === t.id ? "#f0f9ff" : "transparent", color: tab === t.id ? accentColor : "#64748b", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: tab === t.id ? 600 : 400 }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 8 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 9, background: accentColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
+            {perfil?.full_name?.[0] || "U"}
+          </div>
+          <button onClick={onLogout} style={{ border: "none", background: "#f1f5f9", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12, color: "#64748b" }}>Salir</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── VISTAS PRINCIPALES ──────────────────────────────────────────────────────
 function AdminView({ perfil, onLogout }) {
   const [tab, setTab] = useState("dashboard");

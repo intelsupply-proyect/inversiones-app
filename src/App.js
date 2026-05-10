@@ -593,6 +593,10 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
 
   return (
     <Modal open={true} onClose={onClose} title={`Orden: ${ordenActual.code}`} maxWidth={700}>
+      {ordenActual.imagen_url && (
+        <img src={ordenActual.imagen_url} alt={ordenActual.title}
+          style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 12, marginBottom: 16 }} />
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
         {[
           { label: "Empresa", val: ordenActual.target_company },
@@ -1363,7 +1367,14 @@ function PortalDashboard({ profileId, reloadKey }) {
           <div style={{ fontWeight: 700, fontSize: 16, color: "#0f172a", marginBottom: 14 }}>Mis inversiones activas</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {inversiones.map(p => (
-              <div key={p.participation_id} style={{ background: "#fff", borderRadius: 14, padding: 18, border: "1.5px solid #e2e8f0" }}>
+              <div key={p.participation_id} style={{ background: "#fff", borderRadius: 14, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
+                {p.imagen_url
+                  ? <img src={p.imagen_url} alt={p.order_title} style={{ width: "100%", height: 120, objectFit: "cover" }} />
+                  : <div style={{ width: "100%", height: 80, background: "linear-gradient(135deg,#0f172a,#1e3a5f)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: 28 }}>📈</span>
+                    </div>
+                }
+                <div style={{ padding: 18 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 14, color: "#0f172a" }}>{p.order_title}</div>
@@ -1392,6 +1403,7 @@ function PortalDashboard({ profileId, reloadKey }) {
                     </div>
                   </div>
                 )}
+                </div>
               </div>
             ))}
           </div>
@@ -1621,7 +1633,14 @@ function PortalHistorial({ profileId }) {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {historial.map(p => (
-            <div key={p.participation_id} style={{ background: "#fff", borderRadius: 14, padding: 18, border: "1.5px solid #e2e8f0" }}>
+            <div key={p.participation_id} style={{ background: "#fff", borderRadius: 14, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
+              {p.imagen_url
+                ? <img src={p.imagen_url} alt={p.order_title} style={{ width: "100%", height: 100, objectFit: "cover" }} />
+                : <div style={{ width: "100%", height: 70, background: "linear-gradient(135deg,#0f172a,#1e3a5f)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 24 }}>📂</span>
+                  </div>
+              }
+              <div style={{ padding: 18 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 14 }}>{p.order_title}</div>
@@ -1642,6 +1661,7 @@ function PortalHistorial({ profileId }) {
                   <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 3 }}>Venció</div>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>{fmtDate(p.end_date)}</div>
                 </div>
+              </div>
               </div>
             </div>
           ))}

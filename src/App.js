@@ -889,12 +889,12 @@ function AdminVencimientos() {
 }
 
 // ─── PORTAL INVERSIONISTA ────────────────────────────────────────────────────
-function PortalDashboard({ profileId }) {
+function PortalDashboard({ profileId, reloadKey }) {
   const [resumen, setResumen] = useState(null);
   const [inversiones, setInversiones] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [reloadKey]);
 
   async function loadData() {
     setLoading(true);
@@ -1015,8 +1015,10 @@ function PortalOportunidades({ profileId }) {
     const montoNum = parseFloat(monto);
     if (!monto || montoNum <= 0) { setErr("Ingresa un monto válido."); return; }
     if (montoNum < parseFloat(modalParticipar.minimum_amount || 0)) { setErr(`El monto mínimo es ${fmt(modalParticipar.minimum_amount)}.`); return; }
+    const maxDisponible = Math.min(balanceDisponible, parseFloat(modalParticipar.remaining_amount || 0));
     if (montoNum > balanceDisponible) { setErr(`Tu balance disponible es ${fmt(balanceDisponible)}.`); return; }
-    if (montoNum > parseFloat(modalParticipar.remaining_amount || 0)) { setErr(`Solo quedan ${fmt(modalParticipar.remaining_amount)} disponibles.`); return; }
+    if (montoNum > parseFloat(modalParticipar.remaining_amount || 0)) { setErr(`Solo quedan ${fmt(modalParticipar.remaining_amount)} disponibles en esta orden.`); return; }
+    if (montoNum > maxDisponible) { setErr(`El máximo que puedes invertir es ${fmt(maxDisponible)}.`); return; }
     setSaving(true);
     const { data: part, error } = await supabase.from("participations").insert({
       investor_id: profileId,
@@ -1034,7 +1036,7 @@ function PortalOportunidades({ profileId }) {
       p_participation_id: part.id,
     });
     setExito(true);
-    setTimeout(() => { setModalParticipar(null); setExito(false); setMonto(""); loadData(); }, 2000);
+    setTimeout(() => { setModalParticipar(null); setExito(false); setMonto(""); loadData(); }, 1500);
     setSaving(false);
   }
 
@@ -1398,6 +1400,15 @@ function AdminView({ perfil, onLogout }) {
 
 function InvestorView({ perfil, onLogout }) {
   const [tab, setTab] = useState("dashboard");
+  const [reloadCount, setReloadCount] = useState(0);
+
+  function handleTabChange(newTab) {
+    setTab(newTab);
+    if (newTab === "dashboard" || newTab === "inversiones") {
+      setReloadCount(c => c + 1);
+    }
+  }
+
   const tabs = [
     { id: "dashboard", label: "📊 Mi cuenta" },
     { id: "oportunidades", label: "🔍 Oportunidades" },
@@ -1406,9 +1417,9 @@ function InvestorView({ perfil, onLogout }) {
   ];
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
-      <Nav perfil={perfil} tab={tab} setTab={setTab} tabs={tabs} onLogout={onLogout} accentColor="#7c3aed" />
+      <Nav perfil={perfil} tab={tab} setTab={handleTabChange} tabs={tabs} onLogout={onLogout} accentColor="#7c3aed" />
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 20px" }}>
-        {tab === "dashboard" && <PortalDashboard profileId={perfil.id} />}
+        {tab === "dashboard" && <PortalDashboard profileId={perfil.id} reloadKey={reloadCount} />}
         {tab === "oportunidades" && <PortalOportunidades profileId={perfil.id} />}
         {tab === "historial" && <PortalHistorial profileId={perfil.id} />}
         {tab === "movimientos" && <PortalMovimientos profileId={perfil.id} />}

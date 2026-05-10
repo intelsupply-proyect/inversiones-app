@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -268,6 +268,9 @@ function AdminOrdenes({ profileId }) {
   const [form, setForm] = useState({ title: "", target_company: "", description: "", required_amount: "", interest_rate: "", term_months: "", minimum_amount: "" });
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [imgFile, setImgFile] = useState(null);
+  const [imgPreview, setImgPreview] = useState(null);
+  const imgRef = useRef(null);
 
   useEffect(() => { loadOrdenes(); }, []);
 
@@ -278,12 +281,44 @@ function AdminOrdenes({ profileId }) {
     setLoading(false);
   }
 
+  async function uploadImagen(file) {
+    const ext = file.name.split(".").pop();
+    const path = `orders/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("order-images").upload(path, file, { contentType: file.type });
+    if (error) throw error;
+    return `${supabase.storageUrl}/object/public/order-images/${path}`;
+  }
+
+  function handleImgFile(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    setImgFile(f);
+    setImgPreview(URL.createObjectURL(f));
+  }
+
+  function handleImgPaste(e) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let item of items) {
+      if (item.type.startsWith("image/")) {
+        const f = item.getAsFile();
+        setImgFile(f);
+        setImgPreview(URL.createObjectURL(f));
+        break;
+      }
+    }
+  }
+
   async function crearOrden(publicar = false) {
     setErr("");
     if (!form.title || !form.target_company || !form.required_amount || !form.interest_rate || !form.term_months) {
       setErr("Completa todos los campos obligatorios."); return;
     }
     setSaving(true);
+    let imagen_url = null;
+    if (imgFile) {
+      try { imagen_url = await uploadImagen(imgFile); } catch(e) { console.error(e); }
+    }
     const { error } = await supabase.from("investment_orders").insert({
       title: form.title,
       target_company: form.target_company,
@@ -295,10 +330,12 @@ function AdminOrdenes({ profileId }) {
       status: publicar ? "open" : "draft",
       created_by: profileId,
       code: "",
+      imagen_url,
     });
     if (error) { setErr("Error al crear orden."); setSaving(false); return; }
     setModalNueva(false);
     setForm({ title: "", target_company: "", description: "", required_amount: "", interest_rate: "", term_months: "", minimum_amount: "" });
+    setImgFile(null); setImgPreview(null);
     loadOrdenes();
     setSaving(false);
   }
@@ -392,6 +429,34 @@ function AdminOrdenes({ profileId }) {
             💡 Ganancias máximas a pagar: <strong>{fmt(parseFloat(form.required_amount || 0) * parseFloat(form.interest_rate || 0) / 100)}</strong>
           </div>
         )}
+        {/* IMAGEN */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 5 }}>Imagen de la orden (opcional)</div>
+          <div
+            onClick={() => imgRef.current?.click()}
+            onPaste={handleImgPaste}
+            tabIndex={0}
+            style={{ border: "2px dashed #e2e8f0", borderRadius: 12, padding: imgPreview ? 4 : 20, textAlign: "center", cursor: "pointer", background: "#fafafa", minHeight: 80, display: "flex", alignItems: "center", justifyContent: "center", outline: "none" }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = "#7c3aed"}
+            onMouseLeave={e => e.currentTarget.style.borderColor = "#e2e8f0"}
+          >
+            {imgPreview
+              ? <img src={imgPreview} alt="preview" style={{ maxHeight: 160, maxWidth: "100%", borderRadius: 8, objectFit: "cover" }} />
+              : <div>
+                  <div style={{ fontSize: 28, marginBottom: 6 }}>🖼️</div>
+                  <div style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>Clic para buscar imagen</div>
+                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>o pega una captura con Ctrl+V</div>
+                </div>
+            }
+          </div>
+          <input ref={imgRef} type="file" accept="image/*" onChange={handleImgFile} style={{ display: "none" }} />
+          {imgPreview && (
+            <button onClick={() => { setImgFile(null); setImgPreview(null); }}
+              style={{ marginTop: 6, border: "none", background: "#fef2f2", color: "#dc2626", borderRadius: 8, padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>
+              ✕ Quitar imagen
+            </button>
+          )}
+        </div>
         {err && <div style={{ color: "#dc2626", fontSize: 12, marginBottom: 12, padding: "8px 12px", background: "#fef2f2", borderRadius: 8 }}>⚠️ {err}</div>}
         <div style={{ display: "flex", gap: 8 }}>
           <Btn variant="secondary" onClick={() => setModalNueva(false)} style={{ flex: 1 }}>Cancelar</Btn>
@@ -994,38 +1059,50 @@ function PortalOportunidades({ profileId }) {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(340px,1fr))", gap: 16 }}>
           {ordenes.map(o => (
-            <div key={o.id} style={{ background: "#fff", borderRadius: 16, padding: 22, border: "1.5px solid #e2e8f0" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: "#0f172a" }}>{o.title}</div>
-                  <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>{o.target_company}</div>
+            <div key={o.id} style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e2e8f0" }}>
+              {/* IMAGEN */}
+              {o.imagen_url
+                ? <img src={o.imagen_url} alt={o.title} style={{ width: "100%", height: 160, objectFit: "cover" }} />
+                : <div style={{ width: "100%", height: 120, background: "linear-gradient(135deg,#0f172a,#1e3a5f)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 32, marginBottom: 4 }}>📈</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{o.target_company}</div>
+                    </div>
+                  </div>
+              }
+              <div style={{ padding: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: "#0f172a" }}>{o.title}</div>
+                    <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>{o.target_company}</div>
+                  </div>
+                  <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "6px 12px", textAlign: "center", flexShrink: 0 }}>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: "#16a34a" }}>{(parseFloat(o.interest_rate) * 100).toFixed(1)}%</div>
+                    <div style={{ fontSize: 10, color: "#16a34a" }}>retorno</div>
+                  </div>
                 </div>
-                <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "6px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: "#16a34a" }}>{(parseFloat(o.interest_rate) * 100).toFixed(1)}%</div>
-                  <div style={{ fontSize: 10, color: "#16a34a" }}>retorno</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+                  <div style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 3 }}>PLAZO</div>
+                    <div style={{ fontSize: 14, fontWeight: 700 }}>{o.term_months} meses</div>
+                  </div>
+                  <div style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 3 }}>MÍNIMO</div>
+                    <div style={{ fontSize: 14, fontWeight: 700 }}>{fmt(o.minimum_amount || 0)}</div>
+                  </div>
                 </div>
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
+                    <span style={{ color: "#64748b" }}>Disponible: {fmt(o.remaining_amount)}</span>
+                    <span style={{ fontWeight: 700, color: "#2563eb" }}>{parseFloat(o.funding_percentage || 0).toFixed(0)}% fondeado</span>
+                  </div>
+                  <ProgressBar value={parseFloat(o.funded_amount)} max={parseFloat(o.required_amount)} color="#7c3aed" />
+                </div>
+                {o.description && <div style={{ fontSize: 12, color: "#64748b", marginBottom: 14 }}>{o.description}</div>}
+                <Btn onClick={() => { setModalParticipar(o); setMonto(""); setErr(""); }} style={{ width: "100%", background: "#7c3aed" }}>
+                  Participar en esta orden
+                </Btn>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-                <div style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 3 }}>PLAZO</div>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>{o.term_months} meses</div>
-                </div>
-                <div style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 3 }}>MÍNIMO</div>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>{fmt(o.minimum_amount || 0)}</div>
-                </div>
-              </div>
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: "#64748b" }}>Disponible: {fmt(o.remaining_amount)}</span>
-                  <span style={{ fontWeight: 700, color: "#2563eb" }}>{parseFloat(o.funding_percentage || 0).toFixed(0)}% fondeado</span>
-                </div>
-                <ProgressBar value={parseFloat(o.funded_amount)} max={parseFloat(o.required_amount)} color="#7c3aed" />
-              </div>
-              {o.description && <div style={{ fontSize: 12, color: "#64748b", marginBottom: 14 }}>{o.description}</div>}
-              <Btn onClick={() => { setModalParticipar(o); setMonto(""); setErr(""); }} style={{ width: "100%", background: "#7c3aed" }}>
-                Participar en esta orden
-              </Btn>
             </div>
           ))}
         </div>
@@ -1053,17 +1130,39 @@ function PortalOportunidades({ profileId }) {
                 </div>
               ))}
             </div>
-            <Input label="Monto a invertir ($)" type="number" value={monto} onChange={e => { setMonto(e.target.value); setErr(""); }} placeholder="5000" />
+            {/* SIMULADOR */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 8 }}>Simula tu inversión</div>
+              <input
+                type="range"
+                min={parseFloat(modalParticipar?.minimum_amount || 100)}
+                max={Math.min(balanceDisponible, parseFloat(modalParticipar?.remaining_amount || 0))}
+                step={100}
+                value={monto || parseFloat(modalParticipar?.minimum_amount || 100)}
+                onChange={e => { setMonto(e.target.value); setErr(""); }}
+                style={{ width: "100%", marginBottom: 8, accentColor: "#7c3aed" }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#94a3b8", marginBottom: 12 }}>
+                <span>{fmt(modalParticipar?.minimum_amount || 0)}</span>
+                <span style={{ fontWeight: 700, color: "#7c3aed", fontSize: 14 }}>{fmt(monto || 0)}</span>
+                <span>{fmt(Math.min(balanceDisponible, parseFloat(modalParticipar?.remaining_amount || 0)))}</span>
+              </div>
+            </div>
+            <Input label="O escribe el monto exacto ($)" type="number" value={monto} onChange={e => { setMonto(e.target.value); setErr(""); }} placeholder="5000" />
             {monto && parseFloat(monto) > 0 && (
-              <div style={{ background: "#f0fdf4", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ color: "#64748b" }}>Ganancia estimada</span>
-                  <span style={{ fontWeight: 700, color: "#16a34a" }}>{fmt(parseFloat(monto) * parseFloat(modalParticipar?.interest_rate || 0))}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: "#64748b" }}>Recibirás al vencer</span>
-                  <span style={{ fontWeight: 700, color: "#7c3aed" }}>{fmt(parseFloat(monto) * (1 + parseFloat(modalParticipar?.interest_rate || 0)))}</span>
-                </div>
+              <div style={{ background: "#f0fdf4", borderRadius: 12, padding: 14, marginBottom: 14 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "#0f172a", marginBottom: 10 }}>📊 Resumen de tu inversión</div>
+                {[
+                  ["Inviertes", fmt(parseFloat(monto)), "#0f172a"],
+                  ["Ganancia total", fmt(parseFloat(monto) * parseFloat(modalParticipar?.interest_rate || 0)), "#16a34a"],
+                  ["Ganancia mensual est.", fmt(parseFloat(monto) * parseFloat(modalParticipar?.interest_rate || 0) / parseFloat(modalParticipar?.term_months || 1)), "#16a34a"],
+                  ["Recibes al vencer", fmt(parseFloat(monto) * (1 + parseFloat(modalParticipar?.interest_rate || 0))), "#7c3aed"],
+                ].map(([l, v, c]) => (
+                  <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #dcfce7" }}>
+                    <span style={{ fontSize: 12, color: "#64748b" }}>{l}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: c }}>{v}</span>
+                  </div>
+                ))}
               </div>
             )}
             {err && <div style={{ color: "#dc2626", fontSize: 12, marginBottom: 12, padding: "8px 12px", background: "#fef2f2", borderRadius: 8 }}>⚠️ {err}</div>}

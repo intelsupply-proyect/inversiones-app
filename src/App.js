@@ -21,16 +21,17 @@ function daysLeft(endDate) {
 
 function Btn({ children, variant = "primary", ...props }) {
   const variants = {
-    primary:   { background: "#0f172a", color: "#fff" },
-    secondary: { background: "#f1f5f9", color: "#374151" },
-    danger:    { background: "#fef2f2", color: "#dc2626" },
-    success:   { background: "#f0fdf4", color: "#16a34a" },
-    info:      { background: "#eff6ff", color: "#2563eb" },
-    purple:    { background: "#f5f3ff", color: "#7c3aed" },
-    warning:   { background: "#fff7ed", color: "#c2410c" },
+    primary:   { background: "#2563eb", color: "#fff", boxShadow: "0 2px 8px rgba(37,99,235,0.25)" },
+    secondary: { background: "#f1f5f9", color: "#374151", border: "1.5px solid #e2e8f0" },
+    danger:    { background: "#fef2f2", color: "#dc2626", border: "1.5px solid #fecaca" },
+    success:   { background: "#f0fdf4", color: "#16a34a", border: "1.5px solid #bbf7d0" },
+    info:      { background: "#eff6ff", color: "#2563eb", border: "1.5px solid #bfdbfe" },
+    purple:    { background: "#f5f3ff", color: "#7c3aed", border: "1.5px solid #ddd6fe" },
+    warning:   { background: "#fff7ed", color: "#c2410c", border: "1.5px solid #fed7aa" },
+    dark:      { background: "#0f172a", color: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" },
   };
   return (
-    <button {...props} style={{ border: "none", borderRadius: 10, padding: "9px 16px", fontWeight: 600, fontSize: 13, cursor: "pointer", ...variants[variant], ...props.style }}>
+    <button {...props} style={{ border: "none", borderRadius: 10, padding: "9px 18px", fontWeight: 600, fontSize: 13, cursor: "pointer", transition: "opacity 0.15s, transform 0.1s", letterSpacing: "0.01em", ...variants[variant], ...props.style }}>
       {children}
     </button>
   );
@@ -38,18 +39,18 @@ function Btn({ children, variant = "primary", ...props }) {
 
 function Input({ label, ...props }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      {label && <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 5 }}>{label}</div>}
-      <input {...props} style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1.5px solid #e2e8f0", fontSize: 13, outline: "none", color: "#0f172a", background: "#fafafa", boxSizing: "border-box", ...props.style }} />
+    <div style={{ marginBottom: 16 }}>
+      {label && <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</div>}
+      <input {...props} style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #e2e8f0", fontSize: 13, outline: "none", color: "#0f172a", background: "#fff", boxSizing: "border-box", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", transition: "border-color 0.15s", ...props.style }} />
     </div>
   );
 }
 
 function Sel({ label, children, ...props }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      {label && <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 5 }}>{label}</div>}
-      <select {...props} style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1.5px solid #e2e8f0", fontSize: 13, outline: "none", color: "#0f172a", background: "#fafafa", boxSizing: "border-box" }}>
+    <div style={{ marginBottom: 16 }}>
+      {label && <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</div>}
+      <select {...props} style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #e2e8f0", fontSize: 13, outline: "none", color: "#0f172a", background: "#fff", boxSizing: "border-box", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
         {children}
       </select>
     </div>
@@ -60,11 +61,11 @@ function Modal({ open, onClose, title, children, maxWidth = 520 }) {
   if (!open) return null;
   return (
     <div onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ background: "#fff", borderRadius: 20, padding: 28, width: "100%", maxWidth, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <span style={{ fontWeight: 700, fontSize: 16, color: "#0f172a" }}>{title}</span>
-          <button onClick={onClose} style={{ border: "none", background: "#f1f5f9", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 18, color: "#64748b" }}>×</button>
+      style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(4px)" }}>
+      <div style={{ background: "#fff", borderRadius: 20, padding: 28, width: "100%", maxWidth, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.8)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22, paddingBottom: 16, borderBottom: "1.5px solid #f1f5f9" }}>
+          <span style={{ fontWeight: 700, fontSize: 16, color: "#0f172a", letterSpacing: "-0.01em" }}>{title}</span>
+          <button onClick={onClose} style={{ border: "none", background: "#f1f5f9", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 18, color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
         </div>
         {children}
       </div>
@@ -88,17 +89,17 @@ function Badge({ status }) {
     projected:    { bg: "#fef9c3", color: "#854d0e",  label: "Proyectado" },
   };
   const s = map[status] || { bg: "#f1f5f9", color: "#64748b", label: status };
-  return <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{s.label}</span>;
+  return <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: "0.02em", display: "inline-flex", alignItems: "center", gap: 4 }}>{s.label}</span>;
 }
 
 function ProgressBar({ value, max, color = "#2563eb" }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   return (
     <div>
-      <div style={{ height: 6, background: "#f1f5f9", borderRadius: 999, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 999, transition: "width 0.5s" }} />
+      <div style={{ height: 7, background: "#e2e8f0", borderRadius: 999, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${pct}%`, background: `linear-gradient(90deg, ${color}, ${color}cc)`, borderRadius: 999, transition: "width 0.6s ease" }} />
       </div>
-      <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>{pct.toFixed(0)}% fondeado</div>
+      <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4, fontWeight: 500 }}>{pct.toFixed(0)}% fondeado</div>
     </div>
   );
 }
@@ -118,7 +119,7 @@ function Login() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0f172a 0%,#1e293b 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#1e40af 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "'Inter','DM Sans','Segoe UI',sans-serif" }}>
       <div style={{ width: "100%", maxWidth: 400 }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ width: 80, height: 80, borderRadius: 24, background: "rgba(255,255,255,0.1)", margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid rgba(255,255,255,0.15)" }}>
@@ -191,19 +192,21 @@ function AdminDashboard({ onReload }) {
 
   return (
     <div>
-      <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a", marginBottom: 24 }}>Dashboard General</div>
+      <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a", marginBottom: 24, letterSpacing: "-0.03em" }}>Dashboard General</div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 16, marginBottom: 32 }}>
         {[
-          { label: "Capital total gestionado", val: fmt(stats.capital), icon: "💰", color: "#0ea5e9" },
-          { label: "Capital invertido activo", val: fmt(stats.invertido), icon: "📈", color: "#7c3aed" },
-          { label: "Ganancias pagadas", val: fmt(stats.ganancias), icon: "✅", color: "#16a34a" },
-          { label: "Órdenes activas", val: stats.ordenes, icon: "📋", color: "#f59e0b" },
+          { label: "Capital total gestionado", val: fmt(stats.capital), icon: "💰", color: "#2563eb", bg: "#eff6ff" },
+          { label: "Capital invertido activo", val: fmt(stats.invertido), icon: "📈", color: "#7c3aed", bg: "#f5f3ff" },
+          { label: "Ganancias pagadas", val: fmt(stats.ganancias), icon: "✅", color: "#16a34a", bg: "#f0fdf4" },
+          { label: "Órdenes activas", val: stats.ordenes, icon: "📋", color: "#f59e0b", bg: "#fffbeb" },
         ].map(k => (
-          <div key={k.label} style={{ background: "#fff", borderRadius: 16, padding: "22px", border: "1.5px solid #e2e8f0" }}>
-            <div style={{ fontSize: 28, marginBottom: 10 }}>{k.icon}</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: k.color, letterSpacing: "-0.5px" }}>{k.val}</div>
-            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>{k.label}</div>
+          <div key={k.label} style={{ background: "#fff", borderRadius: 16, padding: "22px", border: "1.5px solid #e2e8f0", boxShadow: "0 2px 12px rgba(0,0,0,0.05)", display: "flex", gap: 16, alignItems: "center" }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: k.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{k.icon}</div>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: k.color, letterSpacing: "-0.5px", lineHeight: 1 }}>{k.val}</div>
+              <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 5, fontWeight: 500 }}>{k.label}</div>
+            </div>
           </div>
         ))}
       </div>
@@ -214,7 +217,7 @@ function AdminDashboard({ onReload }) {
           <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
-                <tr style={{ background: "#f8fafc" }}>
+                <tr style={{ background: "#f8fafc", borderBottom: "2px solid #e2e8f0" }}>
                   {["Inversionista", "Orden", "Empresa", "Capital", "Ganancia est.", "Vence", "Días rest."].map(h => (
                     <th key={h} style={{ padding: "11px 14px", textAlign: "left", fontWeight: 600, color: "#64748b", fontSize: 12 }}>{h}</th>
                   ))}
@@ -429,7 +432,7 @@ function AdminOrdenes({ profileId }) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a" }}>Órdenes de Inversión</div>
+        <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a", letterSpacing: "-0.03em" }}>Órdenes de Inversión</div>
         <Btn onClick={() => setModalNueva(true)}>+ Nueva orden</Btn>
       </div>
 
@@ -708,7 +711,7 @@ function AdminInversionistas() {
 
   return (
     <div>
-      <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a", marginBottom: 24 }}>Inversionistas</div>
+      <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a", marginBottom: 24, letterSpacing: "-0.03em" }}>Inversionistas</div>
       {loading ? <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>Cargando...</div> : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))", gap: 16 }}>
           {inversores.map(inv => (
@@ -1718,7 +1721,7 @@ function PortalMovimientos({ profileId }) {
   );
 }
 
-// ─── NAV ─────────────────────────────────────────────────────────────────────
+// ─── NAV / SIDEBAR ───────────────────────────────────────────────────────────
 function Nav({ perfil, tab, setTab, tabs, onLogout, accentColor }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
@@ -1728,59 +1731,78 @@ function Nav({ perfil, tab, setTab, tabs, onLogout, accentColor }) {
   }
 
   const LogoSVG = () => (
-    <svg width="34" height="34" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 9 }}>
+    <svg width="32" height="32" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 8, flexShrink: 0 }}>
       <defs>
         <linearGradient id="navbg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#0f172a"/>
-          <stop offset="100%" stopColor="#1e3a5f"/>
-        </linearGradient>
-        <linearGradient id="navaccent" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#3b82f6"/>
-          <stop offset="100%" stopColor="#7c3aed"/>
+          <stop offset="0%" stopColor="#1e40af"/>
+          <stop offset="100%" stopColor="#2563eb"/>
         </linearGradient>
         <linearGradient id="navgold" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#f59e0b"/>
-          <stop offset="100%" stopColor="#fbbf24"/>
+          <stop offset="0%" stopColor="#fbbf24"/>
+          <stop offset="100%" stopColor="#f59e0b"/>
         </linearGradient>
       </defs>
       <rect width="400" height="400" rx="80" fill="url(#navbg)"/>
-      <rect x="80" y="240" width="40" height="70" rx="6" fill="url(#navaccent)" opacity="0.5"/>
-      <rect x="135" y="195" width="40" height="115" rx="6" fill="url(#navaccent)" opacity="0.7"/>
-      <rect x="190" y="150" width="40" height="160" rx="6" fill="url(#navaccent)" opacity="0.85"/>
-      <rect x="245" y="110" width="40" height="200" rx="6" fill="url(#navaccent)"/>
-      <polyline points="100,238 155,193 210,148 265,108" fill="none" stroke="url(#navgold)" strokeWidth="18" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="265" cy="108" r="20" fill="#fbbf24"/>
+      <rect x="80" y="240" width="40" height="70" rx="6" fill="rgba(255,255,255,0.4)"/>
+      <rect x="135" y="195" width="40" height="115" rx="6" fill="rgba(255,255,255,0.6)"/>
+      <rect x="190" y="150" width="40" height="160" rx="6" fill="rgba(255,255,255,0.8)"/>
+      <rect x="245" y="110" width="40" height="200" rx="6" fill="#fff"/>
+      <polyline points="100,238 155,193 210,148 265,108" fill="none" stroke="url(#navgold)" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="265" cy="108" r="18" fill="#fbbf24"/>
     </svg>
   );
 
   return (
-    <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 100 }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 16px", display: "flex", alignItems: "center", height: 56 }}>
+    <>
+      {/* TOP BAR */}
+      <div style={{ background: "#fff", borderBottom: "1.5px solid #e2e8f0", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "center", height: 60 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginRight: "auto" }}>
+            <LogoSVG />
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 15, color: "#0f172a", letterSpacing: "-0.02em" }}>InvestAdmin</div>
+              <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 500, marginTop: -2 }}>Sistema de inversiones</div>
+            </div>
+          </div>
 
-        {/* LOGO */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginRight: "auto" }}>
-          <LogoSVG />
-          <span style={{ fontWeight: 800, fontSize: 15, color: "#0f172a" }}>InvestAdmin</span>
+          {/* TABS DESKTOP */}
+          <div style={{ display: "flex", gap: 2, marginRight: 16 }}>
+            {tabs.map(t => (
+              <button key={t.id} onClick={() => handleTab(t.id)}
+                style={{ border: "none", background: tab === t.id ? "#eff6ff" : "transparent",
+                  color: tab === t.id ? "#2563eb" : "#64748b", borderRadius: 9, padding: "7px 13px",
+                  cursor: "pointer", fontSize: 12, fontWeight: tab === t.id ? 700 : 500,
+                  borderBottom: tab === t.id ? "2px solid #2563eb" : "2px solid transparent",
+                  transition: "all 0.15s", whiteSpace: "nowrap" }}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* USUARIO */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{perfil?.full_name?.split(" ")[0]}</div>
+              <div style={{ fontSize: 10, color: "#94a3b8" }}>{perfil?.role === "admin" ? "Administrador" : "Inversionista"}</div>
+            </div>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: accentColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, boxShadow: `0 2px 8px ${accentColor}40` }}>
+              {perfil?.full_name?.[0] || "U"}
+            </div>
+          </div>
+
+          {/* HAMBURGUESA */}
+          <button onClick={() => setMenuAbierto(p => !p)}
+            style={{ border: "none", background: menuAbierto ? "#f1f5f9" : "transparent", borderRadius: 8, cursor: "pointer", padding: "6px 8px", fontSize: 18, color: "#64748b", marginLeft: 8, display: "flex", alignItems: "center" }}>
+            {menuAbierto ? "✕" : "☰"}
+          </button>
         </div>
-
-        {/* AVATAR */}
-        <div style={{ width: 32, height: 32, borderRadius: 9, background: accentColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, marginRight: 8 }}>
-          {perfil?.full_name?.[0] || "U"}
-        </div>
-
-        {/* HAMBURGUESA */}
-        <button onClick={() => setMenuAbierto(p => !p)}
-          style={{ border: "none", background: menuAbierto ? "#f1f5f9" : "transparent", borderRadius: 8, cursor: "pointer", padding: "6px 10px", fontSize: 18, color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36 }}>
-          {menuAbierto ? "✕" : "☰"}
-        </button>
       </div>
 
-      {/* MENÚ DESPLEGABLE */}
+      {/* MENÚ DESPLEGABLE MÓVIL */}
       {menuAbierto && (
-        <div style={{ background: "#fff", borderTop: "1px solid #f1f5f9", padding: "8px 16px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}>
-          {/* Info del usuario */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f8fafc", borderRadius: 12, marginBottom: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: accentColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, flexShrink: 0 }}>
+        <div style={{ background: "#fff", borderBottom: "1.5px solid #e2e8f0", padding: "10px 20px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.1)", position: "sticky", top: 60, zIndex: 99 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f8fafc", borderRadius: 12, marginBottom: 10, border: "1.5px solid #e2e8f0" }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: accentColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800 }}>
               {perfil?.full_name?.[0] || "U"}
             </div>
             <div>
@@ -1788,26 +1810,27 @@ function Nav({ perfil, tab, setTab, tabs, onLogout, accentColor }) {
               <div style={{ fontSize: 11, color: "#94a3b8" }}>{perfil?.email}</div>
             </div>
           </div>
-
-          {/* Opciones de navegación */}
           {tabs.map(t => (
             <button key={t.id} onClick={() => handleTab(t.id)}
-              style={{ display: "flex", alignItems: "center", width: "100%", border: "none", background: tab === t.id ? "#f0f9ff" : "transparent", color: tab === t.id ? accentColor : "#374151", borderRadius: 10, padding: "12px 14px", cursor: "pointer", fontSize: 14, fontWeight: tab === t.id ? 700 : 400, marginBottom: 4, textAlign: "left", borderLeft: tab === t.id ? `3px solid ${accentColor}` : "3px solid transparent" }}>
+              style={{ display: "flex", alignItems: "center", width: "100%", border: "none",
+                background: tab === t.id ? "#eff6ff" : "transparent",
+                color: tab === t.id ? "#2563eb" : "#374151",
+                borderRadius: 10, padding: "12px 14px", cursor: "pointer", fontSize: 14,
+                fontWeight: tab === t.id ? 700 : 400, marginBottom: 3, textAlign: "left",
+                borderLeft: tab === t.id ? "3px solid #2563eb" : "3px solid transparent" }}>
               {t.label}
-              {tab === t.id && <span style={{ marginLeft: "auto", background: accentColor, color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 10, fontWeight: 700 }}>Activo</span>}
+              {tab === t.id && <span style={{ marginLeft: "auto", background: "#2563eb", color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 10 }}>●</span>}
             </button>
           ))}
-
-          {/* Cerrar sesión */}
-          <div style={{ borderTop: "1px solid #f1f5f9", marginTop: 8, paddingTop: 8 }}>
+          <div style={{ borderTop: "1.5px solid #f1f5f9", marginTop: 10, paddingTop: 10 }}>
             <button onClick={onLogout}
-              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", border: "none", background: "#fef2f2", color: "#dc2626", borderRadius: 10, padding: "12px 14px", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
+              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", border: "1.5px solid #fecaca", background: "#fef2f2", color: "#dc2626", borderRadius: 10, padding: "11px 14px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
               🚪 Cerrar sesión
             </button>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -2075,9 +2098,9 @@ function AdminView({ perfil, onLogout }) {
     { id: "vencimientos", label: "⏰ Vencimientos" },
   ];
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
-      <Nav perfil={perfil} tab={tab} setTab={setTab} tabs={tabs} onLogout={onLogout} accentColor="#1d4ed8" />
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 20px" }}>
+    <div style={{ minHeight: "100vh", background: "#f0f4f8", fontFamily: "'Inter','DM Sans','Segoe UI',sans-serif" }}>
+      <Nav perfil={perfil} tab={tab} setTab={setTab} tabs={tabs} onLogout={onLogout} accentColor="#2563eb" />
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 24px" }}>
         {tab === "dashboard" && <AdminDashboard onReload={reload} />}
         {tab === "ordenes" && <AdminOrdenes profileId={perfil.id} />}
         {tab === "inversionistas" && <AdminInversionistas />}
@@ -2108,9 +2131,9 @@ function InvestorView({ perfil, onLogout }) {
     { id: "movimientos", label: "💳 Movimientos" },
   ];
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
-      <Nav perfil={perfil} tab={tab} setTab={handleTabChange} tabs={tabs} onLogout={onLogout} accentColor="#7c3aed" />
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 20px" }}>
+    <div style={{ minHeight: "100vh", background: "#f0f4f8", fontFamily: "'Inter','DM Sans','Segoe UI',sans-serif" }}>
+      <Nav perfil={perfil} tab={tab} setTab={handleTabChange} tabs={tabs} onLogout={onLogout} accentColor="#2563eb" />
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 24px" }}>
         {tab === "dashboard" && <PortalDashboard profileId={perfil.id} reloadKey={reloadCount} />}
         {tab === "oportunidades" && <PortalOportunidades profileId={perfil.id} />}
         {tab === "calendario" && <PortalCalendario profileId={perfil.id} />}

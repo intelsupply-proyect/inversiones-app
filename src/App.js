@@ -1190,51 +1190,78 @@ function Nav({ perfil, tab, setTab, tabs, onLogout, accentColor }) {
     setMenuAbierto(false);
   }
 
+  const LogoSVG = () => (
+    <svg width="34" height="34" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 9 }}>
+      <defs>
+        <linearGradient id="navbg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#0f172a"/>
+          <stop offset="100%" stopColor="#1e3a5f"/>
+        </linearGradient>
+        <linearGradient id="navaccent" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3b82f6"/>
+          <stop offset="100%" stopColor="#7c3aed"/>
+        </linearGradient>
+        <linearGradient id="navgold" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#f59e0b"/>
+          <stop offset="100%" stopColor="#fbbf24"/>
+        </linearGradient>
+      </defs>
+      <rect width="400" height="400" rx="80" fill="url(#navbg)"/>
+      <rect x="80" y="240" width="40" height="70" rx="6" fill="url(#navaccent)" opacity="0.5"/>
+      <rect x="135" y="195" width="40" height="115" rx="6" fill="url(#navaccent)" opacity="0.7"/>
+      <rect x="190" y="150" width="40" height="160" rx="6" fill="url(#navaccent)" opacity="0.85"/>
+      <rect x="245" y="110" width="40" height="200" rx="6" fill="url(#navaccent)"/>
+      <polyline points="100,238 155,193 210,148 265,108" fill="none" stroke="url(#navgold)" strokeWidth="18" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="265" cy="108" r="20" fill="#fbbf24"/>
+    </svg>
+  );
+
   return (
     <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 100 }}>
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 16px", display: "flex", alignItems: "center", height: 56 }}>
 
         {/* LOGO */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginRight: "auto" }}>
-          <div style={{ width: 32, height: 32, borderRadius: 9, background: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>💼</div>
+          <LogoSVG />
           <span style={{ fontWeight: 800, fontSize: 15, color: "#0f172a" }}>InvestAdmin</span>
         </div>
 
-        {/* DESKTOP: tabs normales */}
-        <div style={{ display: "flex", gap: 2, "@media(maxWidth:640px)": { display: "none" } }} className="desktop-tabs">
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => handleTab(t.id)}
-              style={{ border: "none", background: tab === t.id ? "#f0f9ff" : "transparent", color: tab === t.id ? accentColor : "#64748b", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: tab === t.id ? 600 : 400 }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {/* AVATAR + SALIR (desktop) */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 8 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 9, background: accentColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
-            {perfil?.full_name?.[0] || "U"}
-          </div>
-          <button onClick={onLogout} style={{ border: "none", background: "#f1f5f9", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12, color: "#64748b" }}>Salir</button>
+        {/* AVATAR */}
+        <div style={{ width: 32, height: 32, borderRadius: 9, background: accentColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, marginRight: 8 }}>
+          {perfil?.full_name?.[0] || "U"}
         </div>
 
         {/* HAMBURGUESA */}
         <button onClick={() => setMenuAbierto(p => !p)}
-          style={{ border: "none", background: "transparent", cursor: "pointer", padding: "6px 8px", marginLeft: 8, fontSize: 20, color: "#64748b", display: "flex", alignItems: "center" }}>
+          style={{ border: "none", background: menuAbierto ? "#f1f5f9" : "transparent", borderRadius: 8, cursor: "pointer", padding: "6px 10px", fontSize: 18, color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36 }}>
           {menuAbierto ? "✕" : "☰"}
         </button>
       </div>
 
       {/* MENÚ DESPLEGABLE */}
       {menuAbierto && (
-        <div style={{ background: "#fff", borderTop: "1px solid #f1f5f9", padding: "8px 16px 16px" }}>
+        <div style={{ background: "#fff", borderTop: "1px solid #f1f5f9", padding: "8px 16px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}>
+          {/* Info del usuario */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f8fafc", borderRadius: 12, marginBottom: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: accentColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, flexShrink: 0 }}>
+              {perfil?.full_name?.[0] || "U"}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{perfil?.full_name}</div>
+              <div style={{ fontSize: 11, color: "#94a3b8" }}>{perfil?.email}</div>
+            </div>
+          </div>
+
+          {/* Opciones de navegación */}
           {tabs.map(t => (
             <button key={t.id} onClick={() => handleTab(t.id)}
-              style={{ display: "flex", alignItems: "center", width: "100%", border: "none", background: tab === t.id ? "#f0f9ff" : "transparent", color: tab === t.id ? accentColor : "#374151", borderRadius: 10, padding: "12px 14px", cursor: "pointer", fontSize: 14, fontWeight: tab === t.id ? 700 : 400, marginBottom: 4, textAlign: "left" }}>
+              style={{ display: "flex", alignItems: "center", width: "100%", border: "none", background: tab === t.id ? "#f0f9ff" : "transparent", color: tab === t.id ? accentColor : "#374151", borderRadius: 10, padding: "12px 14px", cursor: "pointer", fontSize: 14, fontWeight: tab === t.id ? 700 : 400, marginBottom: 4, textAlign: "left", borderLeft: tab === t.id ? `3px solid ${accentColor}` : "3px solid transparent" }}>
               {t.label}
-              {tab === t.id && <span style={{ marginLeft: "auto", fontSize: 10 }}>●</span>}
+              {tab === t.id && <span style={{ marginLeft: "auto", background: accentColor, color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 10, fontWeight: 700 }}>Activo</span>}
             </button>
           ))}
+
+          {/* Cerrar sesión */}
           <div style={{ borderTop: "1px solid #f1f5f9", marginTop: 8, paddingTop: 8 }}>
             <button onClick={onLogout}
               style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", border: "none", background: "#fef2f2", color: "#dc2626", borderRadius: 10, padding: "12px 14px", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>

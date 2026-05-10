@@ -1011,6 +1011,9 @@ function AdminPagosMensuales() {
   const [participaciones, setParticipaciones] = useState([]);
   const [form, setForm] = useState({ participation_id: "", mes: new Date().getMonth() + 1, anio: new Date().getFullYear(), monto_interes: "", notas: "" });
   const [saving, setSaving] = useState(false);
+  const [imgFile, setImgFile] = useState(null);
+  const [imgPreview, setImgPreview] = useState(null);
+  const imgRef = useRef(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -1025,10 +1028,37 @@ function AdminPagosMensuales() {
     setLoading(false);
   }
 
+  function handleImgFile(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    setImgFile(f);
+    setImgPreview(URL.createObjectURL(f));
+  }
+
+  function handlePaste(e) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let item of items) {
+      if (item.type.startsWith("image/")) {
+        const f = item.getAsFile();
+        setImgFile(f);
+        setImgPreview(URL.createObjectURL(f));
+        break;
+      }
+    }
+  }
+
   async function crearPago() {
     if (!form.participation_id || !form.monto_interes) return;
     setSaving(true);
     const part = participaciones.find(p => p.participation_id === form.participation_id);
+    let comprobante_url = null;
+    if (imgFile) {
+      const ext = imgFile.name?.split(".").pop() || "jpg";
+      const path = `pagos/${Date.now()}.${ext}`;
+      await supabase.storage.from("comprobantes").upload(path, imgFile, { contentType: imgFile.type });
+      comprobante_url = `${supabase.storageUrl}/object/public/comprobantes/${path}`;
+    }
     await supabase.from("pagos_mensuales").insert({
       participation_id: form.participation_id,
       investor_id: part.investor_id,
@@ -1037,10 +1067,13 @@ function AdminPagosMensuales() {
       anio: parseInt(form.anio),
       monto_interes: parseFloat(form.monto_interes),
       notas: form.notas,
-      status: "pendiente",
+      comprobante_url,
+      status: comprobante_url ? "pagado" : "pendiente",
+      fecha_pago: comprobante_url ? new Date().toISOString().split("T")[0] : null,
     });
     setModalNuevo(false);
     setForm({ participation_id: "", mes: new Date().getMonth() + 1, anio: new Date().getFullYear(), monto_interes: "", notas: "" });
+    setImgFile(null); setImgPreview(null);
     loadData();
     setSaving(false);
   }
@@ -1134,6 +1167,36 @@ function AdminPagosMensuales() {
         </div>
         <Input label="Monto del interés ($) *" type="number" value={form.monto_interes} onChange={e => setForm(p => ({ ...p, monto_interes: e.target.value }))} placeholder="95.00" />
         <Input label="Notas (opcional)" value={form.notas} onChange={e => setForm(p => ({ ...p, notas: e.target.value }))} placeholder="Ej: Transferencia #12345" />
+
+        {/* COMPROBANTE */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 5 }}>Comprobante de pago (opcional)</div>
+          <div
+            onClick={() => imgRef.current?.click()}
+            onPaste={handlePaste}
+            tabIndex={0}
+            style={{ border: "2px dashed #e2e8f0", borderRadius: 12, padding: imgPreview ? 4 : 18, textAlign: "center", cursor: "pointer", background: "#fafafa", minHeight: 70, display: "flex", alignItems: "center", justifyContent: "center", outline: "none" }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = "#7c3aed"}
+            onMouseLeave={e => e.currentTarget.style.borderColor = "#e2e8f0"}
+          >
+            {imgPreview
+              ? <img src={imgPreview} alt="preview" style={{ maxHeight: 140, maxWidth: "100%", borderRadius: 8, objectFit: "contain" }} />
+              : <div>
+                  <div style={{ fontSize: 24, marginBottom: 4 }}>📎</div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>Clic para buscar imagen</div>
+                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>o pega con Ctrl+V</div>
+                </div>
+            }
+          </div>
+          <input ref={imgRef} type="file" accept="image/*,.pdf" onChange={handleImgFile} style={{ display: "none" }} />
+          {imgPreview && (
+            <button onClick={() => { setImgFile(null); setImgPreview(null); }}
+              style={{ marginTop: 5, border: "none", background: "#fef2f2", color: "#dc2626", borderRadius: 8, padding: "3px 10px", fontSize: 11, cursor: "pointer" }}>
+              ✕ Quitar
+            </button>
+          )}
+        </div>
+
         <div style={{ display: "flex", gap: 8 }}>
           <Btn variant="secondary" onClick={() => setModalNuevo(false)} style={{ flex: 1 }}>Cancelar</Btn>
           <Btn onClick={crearPago} disabled={saving} style={{ flex: 1 }}>{saving ? "Guardando..." : "Registrar pago"}</Btn>

@@ -145,6 +145,8 @@ function AdminDashboard({ onReload }) {
   const [stats, setStats] = useState({ capital: 0, invertido: 0, ganancias: 0, ordenes: 0 });
   const [vencimientos, setVencimientos] = useState([]);
   const [ordenesAbiertas, setOrdenesAbiertas] = useState([]);
+  const [ordenesActivas, setOrdenesActivas] = useState([]);
+  const [participacionesPorOrden, setParticipacionesPorOrden] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { loadData(); }, [onReload]);
@@ -160,8 +162,8 @@ function AdminDashboard({ onReload }) {
     const capital = (invs || []).reduce((a, b) => a + parseFloat(b.available_balance || 0) + parseFloat(b.total_invested || 0), 0);
     const invertido = (invs || []).reduce((a, b) => a + parseFloat(b.total_invested || 0), 0);
     const ganancias = (earns || []).reduce((a, b) => a + parseFloat(b.interest_earned || 0), 0);
-    const ordenesActivas = (ords || []).filter(o => ["active", "open", "funded"].includes(o.status)).length;
-    setStats({ capital, invertido, ganancias, ordenes: ordenesActivas });
+    const nOrdenesActivas = (ords || []).filter(o => ["active", "open", "funded"].includes(o.status)).length;
+    setStats({ capital, invertido, ganancias, ordenes: nOrdenesActivas });
 
     const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
     const en30 = new Date(hoy); en30.setDate(en30.getDate() + 30);
@@ -172,6 +174,16 @@ function AdminDashboard({ onReload }) {
     }).sort((a, b) => new Date(a.end_date) - new Date(b.end_date));
     setVencimientos(venc);
     setOrdenesAbiertas((ords || []).filter(o => o.status === "open"));
+
+    // Órdenes activas con sus participantes
+    const activas = (ords || []).filter(o => o.status === "active");
+    setOrdenesActivas(activas);
+    const porOrden = {};
+    (parts || []).filter(p => p.status === "active").forEach(p => {
+      if (!porOrden[p.order_id]) porOrden[p.order_id] = [];
+      porOrden[p.order_id].push(p);
+    });
+    setParticipacionesPorOrden(porOrden);
     setLoading(false);
   }
 
@@ -234,7 +246,7 @@ function AdminDashboard({ onReload }) {
       )}
 
       {ordenesAbiertas.length > 0 && (
-        <div>
+        <div style={{ marginBottom: 32 }}>
           <div style={{ fontWeight: 700, fontSize: 16, color: "#0f172a", marginBottom: 14 }}>📂 Órdenes abiertas</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: 14 }}>
             {ordenesAbiertas.map(o => (
@@ -251,6 +263,61 @@ function AdminDashboard({ onReload }) {
                 <div style={{ fontSize: 12, color: "#94a3b8" }}>{o.participant_count || 0} inversionistas · {fmt(o.remaining_amount)} disponibles</div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ÓRDENES ACTIVAS CON PARTICIPANTES */}
+      {ordenesActivas.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontWeight: 700, fontSize: 16, color: "#0f172a", marginBottom: 14 }}>🔒 Órdenes activas</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {ordenesActivas.map(o => {
+              const parts = participacionesPorOrden[o.id] || [];
+              const totalInvertido = parts.reduce((a, b) => a + parseFloat(b.amount || 0), 0);
+              const interesTotal = totalInvertido * parseFloat(o.interest_rate || 0);
+              const interesMensual = interesTotal / parseFloat(o.term_months || 1);
+              return (
+                <div key={o.id} style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #dcfce7", overflow: "hidden" }}>
+                  <div style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: "#0f172a" }}>{o.title}</div>
+                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>{o.target_company} · {o.term_months} meses · {(parseFloat(o.interest_rate) * 100).toFixed(1)}% · Vence {fmtDate(o.end_date)}</div>
+                    </div>
+                    <div style={{ display: "flex", gap: 12 }}>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: 11, color: "#64748b" }}>Capital</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{fmt(totalInvertido)}</div>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: 11, color: "#64748b" }}>Interés/mes</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: "#16a34a" }}>{fmt(interesMensual)}</div>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: 11, color: "#64748b" }}>Días rest.</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: daysLeft(o.end_date) <= 30 ? "#dc2626" : "#f59e0b" }}>{daysLeft(o.end_date)}</div>
+                      </div>
+                    </div>
+                  </div>
+                  {parts.length > 0 && (
+                    <div style={{ padding: "12px 20px" }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", marginBottom: 8 }}>{parts.length} inversionista{parts.length > 1 ? "s" : ""}</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {parts.map(p => (
+                          <div key={p.participation_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "#f8fafc", borderRadius: 10 }}>
+                            <div style={{ fontWeight: 600, fontSize: 13 }}>{p.investor_name}</div>
+                            <div style={{ display: "flex", gap: 16, fontSize: 12 }}>
+                              <span style={{ color: "#64748b" }}>Capital: <strong>{fmt(p.amount)}</strong></span>
+                              <span style={{ color: "#16a34a" }}>Int/mes: <strong>{fmt(parseFloat(p.amount) * parseFloat(p.interest_rate) / parseFloat(o.term_months || 1))}</strong></span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -664,6 +731,13 @@ function AdminInversionistas() {
                   </div>
                 ))}
               </div>
+              {inv.banco && (
+                <div style={{ background: "#f8fafc", borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
+                  <span style={{ color: "#94a3b8" }}>Banco: </span><strong>{inv.banco}</strong>
+                  {inv.cuenta_bancaria && <span style={{ color: "#94a3b8", marginLeft: 8 }}>Cuenta: </span>}
+                  {inv.cuenta_bancaria && <strong>****{inv.cuenta_bancaria.slice(-4)}</strong>}
+                </div>
+              )}
               <div style={{ display: "flex", gap: 8 }}>
                 <Btn variant="info" style={{ flex: 1, fontSize: 12 }} onClick={() => setModalDetalle(inv)}>Ver detalle</Btn>
                 <Btn variant="success" style={{ flex: 1, fontSize: 12 }} onClick={() => { setModalDeposito(inv); setDeposito({ monto: "", descripcion: "" }); }}>+ Depósito</Btn>
@@ -701,25 +775,73 @@ function AdminInversionistas() {
 function ModalDetalleInversor({ inv, onClose }) {
   const [participaciones, setParticipaciones] = useState([]);
   const [movimientos, setMovimientos] = useState([]);
+  const [pagos, setPagos] = useState([]);
   const [tab, setTab] = useState("inversiones");
   const [loading, setLoading] = useState(true);
+  const [editBanco, setEditBanco] = useState(false);
+  const [banco, setBanco] = useState(inv.banco || "");
+  const [cuenta, setCuenta] = useState(inv.cuenta_bancaria || "");
+  const [savingBanco, setSavingBanco] = useState(false);
+  const [modalComprobante, setModalComprobante] = useState(null);
+  const [comprobanteFile, setComprobanteFile] = useState(null);
+  const [comprobantePreview, setComprobantePreview] = useState(null);
+  const [savingComp, setSavingComp] = useState(false);
+  const compRef = useRef(null);
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
     setLoading(true);
-    const [{ data: parts }, { data: movs }] = await Promise.all([
+    const [{ data: parts }, { data: movs }, { data: pags }] = await Promise.all([
       supabase.from("participation_detail").select("*").eq("investor_id", inv.investor_id).order("created_at", { ascending: false }),
       supabase.from("capital_movements").select("*").eq("investor_id", inv.investor_id).order("created_at", { ascending: false }),
+      supabase.from("pagos_mensuales").select("*").eq("investor_id", inv.investor_id).order("anio,mes"),
     ]);
     setParticipaciones(parts || []);
     setMovimientos(movs || []);
+    setPagos(pags || []);
     setLoading(false);
   }
 
+  async function guardarBanco() {
+    setSavingBanco(true);
+    await supabase.from("profiles").update({ banco, cuenta_bancaria: cuenta }).eq("id", inv.investor_id);
+    setEditBanco(false);
+    setSavingBanco(false);
+  }
+
+  function handleCompFile(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    setComprobanteFile(f);
+    setComprobantePreview(URL.createObjectURL(f));
+  }
+
+  async function subirComprobante(pago) {
+    if (!comprobanteFile) return;
+    setSavingComp(true);
+    const ext = comprobanteFile.name.split(".").pop();
+    const path = `pagos/${pago.id}_${Date.now()}.${ext}`;
+    await supabase.storage.from("comprobantes").upload(path, comprobanteFile, { contentType: comprobanteFile.type });
+    const url = `${supabase.storageUrl}/object/public/comprobantes/${path}`;
+    await supabase.from("pagos_mensuales").update({
+      comprobante_url: url,
+      status: "pagado",
+      fecha_pago: new Date().toISOString().split("T")[0],
+    }).eq("id", pago.id);
+    setModalComprobante(null);
+    setComprobanteFile(null);
+    setComprobantePreview(null);
+    loadData();
+    setSavingComp(false);
+  }
+
+  const mesesNombre = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
   return (
-    <Modal open={true} onClose={onClose} title={inv.full_name} maxWidth={680}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 20 }}>
+    <Modal open={true} onClose={onClose} title={inv.full_name} maxWidth={720}>
+      {/* MÉTRICAS */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 16 }}>
         {[
           { label: "Balance disponible", val: fmt(inv.available_balance), color: "#7c3aed" },
           { label: "Capital invertido", val: fmt(inv.total_invested), color: "#0ea5e9" },
@@ -732,13 +854,44 @@ function ModalDetalleInversor({ inv, onClose }) {
         ))}
       </div>
 
+      {/* CUENTA BANCARIA */}
+      <div style={{ background: "#f8fafc", borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: editBanco ? 12 : 0 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>🏦 Datos bancarios</div>
+          <Btn variant="secondary" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => setEditBanco(p => !p)}>
+            {editBanco ? "Cancelar" : "Editar"}
+          </Btn>
+        </div>
+        {editBanco ? (
+          <div>
+            <Input label="Banco" value={banco} onChange={e => setBanco(e.target.value)} placeholder="Ej: Banco General" />
+            <Input label="Número de cuenta" value={cuenta} onChange={e => setCuenta(e.target.value)} placeholder="Ej: 04-12-345678-9" />
+            <Btn onClick={guardarBanco} disabled={savingBanco} style={{ width: "100%" }}>{savingBanco ? "Guardando..." : "Guardar"}</Btn>
+          </div>
+        ) : (
+          <div style={{ fontSize: 13, marginTop: 4 }}>
+            {inv.banco ? (
+              <span><strong>{inv.banco}</strong> — Cuenta: <strong>{inv.cuenta_bancaria ? `****${inv.cuenta_bancaria.slice(-4)}` : "—"}</strong></span>
+            ) : (
+              <span style={{ color: "#94a3b8" }}>Sin datos bancarios registrados</span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* TABS */}
       <div style={{ display: "flex", gap: 0, borderBottom: "1.5px solid #e2e8f0", marginBottom: 16 }}>
-        {[["inversiones","Inversiones"], ["movimientos","Movimientos"]].map(([id, lbl]) => (
+        {[["inversiones","Inversiones"], ["pagos","Pagos mensuales"], ["movimientos","Movimientos"]].map(([id, lbl]) => (
           <button key={id} onClick={() => setTab(id)}
-            style={{ border: "none", background: "transparent", padding: "8px 16px", cursor: "pointer", fontSize: 13,
+            style={{ border: "none", background: "transparent", padding: "8px 14px", cursor: "pointer", fontSize: 12,
               fontWeight: tab === id ? 700 : 400, color: tab === id ? "#0f172a" : "#94a3b8",
               borderBottom: tab === id ? "2.5px solid #0f172a" : "2.5px solid transparent", marginBottom: -1.5 }}>
             {lbl}
+            {id === "pagos" && pagos.filter(p => p.status === "pendiente").length > 0 && (
+              <span style={{ background: "#ef4444", color: "#fff", borderRadius: 20, padding: "1px 6px", fontSize: 9, fontWeight: 700, marginLeft: 4 }}>
+                {pagos.filter(p => p.status === "pendiente").length}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -767,6 +920,38 @@ function ModalDetalleInversor({ inv, onClose }) {
               {participaciones.length === 0 && <div style={{ padding: 20, textAlign: "center", color: "#94a3b8" }}>Sin inversiones</div>}
             </div>
           )}
+
+          {tab === "pagos" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {pagos.length === 0 ? (
+                <div style={{ padding: 30, textAlign: "center", color: "#94a3b8" }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>📅</div>
+                  <div>Sin pagos mensuales registrados aún</div>
+                </div>
+              ) : pagos.map(p => (
+                <div key={p.id} style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>{mesesNombre[p.mes - 1]} {p.anio}</div>
+                    <div style={{ fontSize: 12, color: "#16a34a", marginTop: 2 }}>Interés: {fmt(p.monto_interes)}</div>
+                    {p.fecha_pago && <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>Pagado: {fmtDate(p.fecha_pago)}</div>}
+                    {p.notas && <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{p.notas}</div>}
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    {p.comprobante_url
+                      ? <a href={p.comprobante_url} target="_blank" rel="noreferrer">
+                          <Btn variant="info" style={{ padding: "5px 10px", fontSize: 11 }}>Ver 🧾</Btn>
+                        </a>
+                      : <Btn variant="warning" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => { setModalComprobante(p); setComprobanteFile(null); setComprobantePreview(null); }}>
+                          Subir 📎
+                        </Btn>
+                    }
+                    <Badge status={p.status === "pagado" ? "paid" : "pending"} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {tab === "movimientos" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {movimientos.map(m => (
@@ -786,7 +971,175 @@ function ModalDetalleInversor({ inv, onClose }) {
           )}
         </>
       )}
+
+      {/* MODAL SUBIR COMPROBANTE */}
+      {modalComprobante && (
+        <Modal open={true} onClose={() => setModalComprobante(null)} title={`Comprobante — ${mesesNombre[modalComprobante.mes - 1]} ${modalComprobante.anio}`} maxWidth={420}>
+          <div style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 13 }}>
+            Monto del interés: <strong style={{ color: "#16a34a" }}>{fmt(modalComprobante.monto_interes)}</strong>
+          </div>
+          <div
+            onClick={() => compRef.current?.click()}
+            style={{ border: "2px dashed #e2e8f0", borderRadius: 12, padding: comprobantePreview ? 4 : 24, textAlign: "center", cursor: "pointer", background: "#fafafa", minHeight: 80, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+            {comprobantePreview
+              ? <img src={comprobantePreview} alt="comprobante" style={{ maxHeight: 180, maxWidth: "100%", borderRadius: 8 }} />
+              : <div>
+                  <div style={{ fontSize: 28, marginBottom: 6 }}>📎</div>
+                  <div style={{ fontSize: 13, color: "#64748b" }}>Clic para seleccionar imagen o PDF</div>
+                </div>
+            }
+          </div>
+          <input ref={compRef} type="file" accept="image/*,.pdf" onChange={handleCompFile} style={{ display: "none" }} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <Btn variant="secondary" onClick={() => setModalComprobante(null)} style={{ flex: 1 }}>Cancelar</Btn>
+            <Btn onClick={() => subirComprobante(modalComprobante)} disabled={!comprobanteFile || savingComp} style={{ flex: 1 }}>
+              {savingComp ? "Subiendo..." : "Guardar comprobante"}
+            </Btn>
+          </div>
+        </Modal>
+      )}
     </Modal>
+  );
+}
+
+// ─── ADMIN: PAGOS MENSUALES ──────────────────────────────────────────────────
+function AdminPagosMensuales() {
+  const [pagos, setPagos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filtro, setFiltro] = useState("todos");
+  const [modalNuevo, setModalNuevo] = useState(false);
+  const [participaciones, setParticipaciones] = useState([]);
+  const [form, setForm] = useState({ participation_id: "", mes: new Date().getMonth() + 1, anio: new Date().getFullYear(), monto_interes: "", notas: "" });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { loadData(); }, []);
+
+  async function loadData() {
+    setLoading(true);
+    const [{ data: pags }, { data: parts }] = await Promise.all([
+      supabase.from("pagos_mensuales").select("*, profiles(full_name), investment_orders(title)").order("anio,mes"),
+      supabase.from("participation_detail").select("*").eq("status", "active"),
+    ]);
+    setPagos(pags || []);
+    setParticipaciones(parts || []);
+    setLoading(false);
+  }
+
+  async function crearPago() {
+    if (!form.participation_id || !form.monto_interes) return;
+    setSaving(true);
+    const part = participaciones.find(p => p.participation_id === form.participation_id);
+    await supabase.from("pagos_mensuales").insert({
+      participation_id: form.participation_id,
+      investor_id: part.investor_id,
+      order_id: part.order_id,
+      mes: parseInt(form.mes),
+      anio: parseInt(form.anio),
+      monto_interes: parseFloat(form.monto_interes),
+      notas: form.notas,
+      status: "pendiente",
+    });
+    setModalNuevo(false);
+    setForm({ participation_id: "", mes: new Date().getMonth() + 1, anio: new Date().getFullYear(), monto_interes: "", notas: "" });
+    loadData();
+    setSaving(false);
+  }
+
+  const mesesNombre = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  const pagosFiltrados = filtro === "todos" ? pagos : pagos.filter(p => p.status === filtro);
+  const totalPendiente = pagos.filter(p => p.status === "pendiente").reduce((a, b) => a + parseFloat(b.monto_interes || 0), 0);
+  const totalPagado = pagos.filter(p => p.status === "pagado").reduce((a, b) => a + parseFloat(b.monto_interes || 0), 0);
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a" }}>Pagos Mensuales de Intereses</div>
+        <Btn onClick={() => setModalNuevo(true)}>+ Registrar pago</Btn>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
+        <div style={{ background: "#fff", borderRadius: 16, padding: 20, border: "1.5px solid #fde68a" }}>
+          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>Por pagar</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "#f59e0b" }}>{fmt(totalPendiente)}</div>
+        </div>
+        <div style={{ background: "#fff", borderRadius: 16, padding: 20, border: "1.5px solid #bbf7d0" }}>
+          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>Total pagado</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "#16a34a" }}>{fmt(totalPagado)}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        {[["todos","Todos"], ["pendiente","Pendientes"], ["pagado","Pagados"]].map(([val, lbl]) => (
+          <button key={val} onClick={() => setFiltro(val)}
+            style={{ border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+              background: filtro === val ? "#0f172a" : "#f1f5f9", color: filtro === val ? "#fff" : "#64748b" }}>
+            {lbl}
+          </button>
+        ))}
+      </div>
+
+      {loading ? <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>Cargando...</div> : (
+        <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: "#f8fafc" }}>
+                {["Inversionista", "Orden", "Mes/Año", "Interés", "Fecha pago", "Comprobante", "Estado"].map(h => (
+                  <th key={h} style={{ padding: "11px 14px", textAlign: "left", fontWeight: 600, color: "#64748b", fontSize: 12 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagosFiltrados.map((p, i) => (
+                <tr key={p.id} style={{ borderTop: "1px solid #f1f5f9", background: i % 2 === 0 ? "#fff" : "#fafbfc" }}>
+                  <td style={{ padding: "11px 14px", fontWeight: 600 }}>{p.profiles?.full_name}</td>
+                  <td style={{ padding: "11px 14px", color: "#64748b" }}>{p.investment_orders?.title}</td>
+                  <td style={{ padding: "11px 14px" }}>{mesesNombre[p.mes - 1]} {p.anio}</td>
+                  <td style={{ padding: "11px 14px", fontWeight: 700, color: "#16a34a" }}>{fmt(p.monto_interes)}</td>
+                  <td style={{ padding: "11px 14px" }}>{p.fecha_pago ? fmtDate(p.fecha_pago) : "—"}</td>
+                  <td style={{ padding: "11px 14px" }}>
+                    {p.comprobante_url
+                      ? <a href={p.comprobante_url} target="_blank" rel="noreferrer" style={{ color: "#2563eb", fontWeight: 600, fontSize: 12 }}>Ver 🧾</a>
+                      : <span style={{ color: "#94a3b8", fontSize: 12 }}>Sin comprobante</span>
+                    }
+                  </td>
+                  <td style={{ padding: "11px 14px" }}><Badge status={p.status === "pagado" ? "paid" : "pending"} /></td>
+                </tr>
+              ))}
+              {pagosFiltrados.length === 0 && (
+                <tr><td colSpan={7} style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>Sin pagos registrados</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <Modal open={modalNuevo} onClose={() => setModalNuevo(false)} title="Registrar pago mensual" maxWidth={460}>
+        <Sel label="Inversionista / Participación *" value={form.participation_id} onChange={e => {
+          const part = participaciones.find(p => p.participation_id === e.target.value);
+          const interesMensual = part ? parseFloat(part.amount) * parseFloat(part.interest_rate) / (part.term_months || 1) : "";
+          setForm(p => ({ ...p, participation_id: e.target.value, monto_interes: interesMensual ? interesMensual.toFixed(2) : "" }));
+        }}>
+          <option value="">Seleccionar...</option>
+          {participaciones.map(p => (
+            <option key={p.participation_id} value={p.participation_id}>
+              {p.investor_name} — {p.order_title} ({fmt(p.amount)})
+            </option>
+          ))}
+        </Sel>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Sel label="Mes *" value={form.mes} onChange={e => setForm(p => ({ ...p, mes: e.target.value }))}>
+            {mesesNombre.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+          </Sel>
+          <Input label="Año *" type="number" value={form.anio} onChange={e => setForm(p => ({ ...p, anio: e.target.value }))} />
+        </div>
+        <Input label="Monto del interés ($) *" type="number" value={form.monto_interes} onChange={e => setForm(p => ({ ...p, monto_interes: e.target.value }))} placeholder="95.00" />
+        <Input label="Notas (opcional)" value={form.notas} onChange={e => setForm(p => ({ ...p, notas: e.target.value }))} placeholder="Ej: Transferencia #12345" />
+        <div style={{ display: "flex", gap: 8 }}>
+          <Btn variant="secondary" onClick={() => setModalNuevo(false)} style={{ flex: 1 }}>Cancelar</Btn>
+          <Btn onClick={crearPago} disabled={saving} style={{ flex: 1 }}>{saving ? "Guardando..." : "Registrar pago"}</Btn>
+        </div>
+      </Modal>
+    </div>
   );
 }
 
@@ -1383,6 +1736,7 @@ function AdminView({ perfil, onLogout }) {
     { id: "dashboard", label: "📊 Dashboard" },
     { id: "ordenes", label: "📋 Órdenes" },
     { id: "inversionistas", label: "👥 Inversionistas" },
+    { id: "pagos", label: "💳 Pagos mensuales" },
     { id: "vencimientos", label: "⏰ Vencimientos" },
   ];
   return (
@@ -1392,6 +1746,7 @@ function AdminView({ perfil, onLogout }) {
         {tab === "dashboard" && <AdminDashboard onReload={reload} />}
         {tab === "ordenes" && <AdminOrdenes profileId={perfil.id} />}
         {tab === "inversionistas" && <AdminInversionistas />}
+        {tab === "pagos" && <AdminPagosMensuales />}
         {tab === "vencimientos" && <AdminVencimientos />}
       </div>
     </div>

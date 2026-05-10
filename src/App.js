@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
-  "https://uvhqpglroxbolliumbcf.supabase.co",
+  "https://uvhqpglroxbolliumbbcf.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aHFwZ2xyb3hib2xsaXVtYmNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTQxMDYsImV4cCI6MjA5Mzc5MDEwNn0.nSlU5kOQHJYFiPiH7LU6kjcZZa4DWEoEBuxfnI6EVKE"
 );
 
@@ -1183,28 +1183,66 @@ function PortalMovimientos({ profileId }) {
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
 function Nav({ perfil, tab, setTab, tabs, onLogout, accentColor }) {
+  const [menuAbierto, setMenuAbierto] = useState(false);
+
+  function handleTab(id) {
+    setTab(id);
+    setMenuAbierto(false);
+  }
+
   return (
     <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 100 }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 16px", display: "flex", alignItems: "center", gap: 4, height: 56 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 16px", display: "flex", alignItems: "center", height: 56 }}>
+
+        {/* LOGO */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginRight: "auto" }}>
           <div style={{ width: 32, height: 32, borderRadius: 9, background: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>💼</div>
           <span style={{ fontWeight: 800, fontSize: 15, color: "#0f172a" }}>InvestAdmin</span>
         </div>
-        <div style={{ display: "flex", gap: 2 }}>
+
+        {/* DESKTOP: tabs normales */}
+        <div style={{ display: "flex", gap: 2, "@media(maxWidth:640px)": { display: "none" } }} className="desktop-tabs">
           {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
+            <button key={t.id} onClick={() => handleTab(t.id)}
               style={{ border: "none", background: tab === t.id ? "#f0f9ff" : "transparent", color: tab === t.id ? accentColor : "#64748b", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: tab === t.id ? 600 : 400 }}>
               {t.label}
             </button>
           ))}
         </div>
+
+        {/* AVATAR + SALIR (desktop) */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 8 }}>
           <div style={{ width: 30, height: 30, borderRadius: 9, background: accentColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
             {perfil?.full_name?.[0] || "U"}
           </div>
           <button onClick={onLogout} style={{ border: "none", background: "#f1f5f9", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12, color: "#64748b" }}>Salir</button>
         </div>
+
+        {/* HAMBURGUESA */}
+        <button onClick={() => setMenuAbierto(p => !p)}
+          style={{ border: "none", background: "transparent", cursor: "pointer", padding: "6px 8px", marginLeft: 8, fontSize: 20, color: "#64748b", display: "flex", alignItems: "center" }}>
+          {menuAbierto ? "✕" : "☰"}
+        </button>
       </div>
+
+      {/* MENÚ DESPLEGABLE */}
+      {menuAbierto && (
+        <div style={{ background: "#fff", borderTop: "1px solid #f1f5f9", padding: "8px 16px 16px" }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => handleTab(t.id)}
+              style={{ display: "flex", alignItems: "center", width: "100%", border: "none", background: tab === t.id ? "#f0f9ff" : "transparent", color: tab === t.id ? accentColor : "#374151", borderRadius: 10, padding: "12px 14px", cursor: "pointer", fontSize: 14, fontWeight: tab === t.id ? 700 : 400, marginBottom: 4, textAlign: "left" }}>
+              {t.label}
+              {tab === t.id && <span style={{ marginLeft: "auto", fontSize: 10 }}>●</span>}
+            </button>
+          ))}
+          <div style={{ borderTop: "1px solid #f1f5f9", marginTop: 8, paddingTop: 8 }}>
+            <button onClick={onLogout}
+              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", border: "none", background: "#fef2f2", color: "#dc2626", borderRadius: 10, padding: "12px 14px", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
+              🚪 Cerrar sesión
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1792,6 +1792,257 @@ function Nav({ perfil, tab, setTab, tabs, onLogout, accentColor }) {
 }
 
 // ─── VISTAS PRINCIPALES ──────────────────────────────────────────────────────
+
+// ─── CALENDARIO ──────────────────────────────────────────────────────────────
+function Calendario({ eventos, titulo }) {
+  const hoy = new Date();
+  const [mesActual, setMesActual] = useState(hoy.getMonth());
+  const [anioActual, setAnioActual] = useState(hoy.getFullYear());
+
+  const mesesNombre = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  const diasSemana = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+
+  // Calcular días del mes
+  const primerDia = new Date(anioActual, mesActual, 1).getDay();
+  const diasEnMes = new Date(anioActual, mesActual + 1, 0).getDate();
+
+  // Eventos del mes actual
+  const eventosMes = eventos.filter(e => {
+    const d = new Date(e.fecha);
+    return d.getMonth() === mesActual && d.getFullYear() === anioActual;
+  });
+
+  // Eventos por día
+  const eventosPorDia = {};
+  eventosMes.forEach(e => {
+    const dia = new Date(e.fecha).getDate();
+    if (!eventosPorDia[dia]) eventosPorDia[dia] = [];
+    eventosPorDia[dia].push(e);
+  });
+
+  function prevMes() {
+    if (mesActual === 0) { setMesActual(11); setAnioActual(a => a - 1); }
+    else setMesActual(m => m - 1);
+  }
+  function nextMes() {
+    if (mesActual === 11) { setMesActual(0); setAnioActual(a => a + 1); }
+    else setMesActual(m => m + 1);
+  }
+
+  const celdas = [];
+  for (let i = 0; i < primerDia; i++) celdas.push(null);
+  for (let i = 1; i <= diasEnMes; i++) celdas.push(i);
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", background: "#0f172a" }}>
+        <button onClick={prevMes} style={{ border: "none", background: "rgba(255,255,255,0.1)", color: "#fff", borderRadius: 8, width: 30, height: 30, cursor: "pointer", fontSize: 16 }}>‹</button>
+        <div style={{ fontWeight: 700, fontSize: 15, color: "#fff" }}>{mesesNombre[mesActual]} {anioActual}</div>
+        <button onClick={nextMes} style={{ border: "none", background: "rgba(255,255,255,0.1)", color: "#fff", borderRadius: 8, width: 30, height: 30, cursor: "pointer", fontSize: 16 }}>›</button>
+      </div>
+
+      {/* Días de la semana */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", background: "#f8fafc" }}>
+        {diasSemana.map(d => (
+          <div key={d} style={{ padding: "8px 0", textAlign: "center", fontSize: 11, fontWeight: 600, color: "#94a3b8" }}>{d}</div>
+        ))}
+      </div>
+
+      {/* Días */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 1, background: "#f1f5f9", padding: 1 }}>
+        {celdas.map((dia, i) => {
+          if (!dia) return <div key={i} style={{ background: "#fff", minHeight: 52 }} />;
+          const esHoy = dia === hoy.getDate() && mesActual === hoy.getMonth() && anioActual === hoy.getFullYear();
+          const eventos = eventosPorDia[dia] || [];
+          const tieneAlerta = eventos.some(e => e.alerta);
+          const tienePagado = eventos.some(e => e.pagado);
+          return (
+            <div key={i} style={{ background: "#fff", minHeight: 52, padding: 4, position: "relative" }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                background: esHoy ? "#0f172a" : "transparent",
+                color: esHoy ? "#fff" : "#374151",
+                fontSize: 12, fontWeight: esHoy ? 700 : 400, marginBottom: 2
+              }}>{dia}</div>
+              {eventos.map((e, j) => (
+                <div key={j} title={e.label} style={{
+                  fontSize: 9, fontWeight: 600, borderRadius: 4, padding: "1px 4px", marginBottom: 1,
+                  background: e.pagado ? "#dcfce7" : tieneAlerta ? "#fee2e2" : "#dbeafe",
+                  color: e.pagado ? "#15803d" : tieneAlerta ? "#991b1b" : "#1d4ed8",
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"
+                }}>
+                  {e.icono} {e.label}
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Leyenda de eventos del mes */}
+      {eventosMes.length > 0 && (
+        <div style={{ padding: "12px 16px", borderTop: "1px solid #f1f5f9" }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", marginBottom: 8 }}>Este mes</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            {eventosMes.sort((a,b) => new Date(a.fecha) - new Date(b.fecha)).map((e, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: e.pagado ? "#16a34a" : e.alerta ? "#ef4444" : "#2563eb", flexShrink: 0 }} />
+                <span style={{ color: "#374151" }}>{new Date(e.fecha).getDate()} {mesesNombre[mesActual]} — {e.label}</span>
+                {e.monto && <span style={{ marginLeft: "auto", fontWeight: 700, color: "#16a34a" }}>{fmt(e.monto)}</span>}
+                {e.pagado && <span style={{ background: "#dcfce7", color: "#15803d", borderRadius: 10, padding: "1px 6px", fontSize: 10 }}>✓ Pagado</span>}
+                {e.alerta && !e.pagado && <span style={{ background: "#fee2e2", color: "#991b1b", borderRadius: 10, padding: "1px 6px", fontSize: 10 }}>⚠️ Próximo</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminCalendario() {
+  const [eventos, setEventos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { loadData(); }, []);
+
+  async function loadData() {
+    setLoading(true);
+    const [{ data: parts }, { data: pagos }] = await Promise.all([
+      supabase.from("participation_detail").select("*").eq("status", "active"),
+      supabase.from("pagos_mensuales").select("*"),
+    ]);
+
+    const hoy = new Date();
+    const evs = [];
+
+    (parts || []).forEach(p => {
+      if (!p.start_date || !p.end_date) return;
+      const start = new Date(p.start_date);
+      const interesMensual = parseFloat(p.amount) * parseFloat(p.interest_rate) / (p.term_months || 1);
+
+      for (let m = 1; m <= (p.term_months || 1); m++) {
+        const fechaPago = new Date(start);
+        fechaPago.setMonth(fechaPago.getMonth() + m);
+        const mes = fechaPago.getMonth() + 1;
+        const anio = fechaPago.getFullYear();
+        const diasRestantes = Math.ceil((fechaPago - hoy) / (1000 * 60 * 60 * 24));
+
+        // Ver si ya está pagado
+        const pagoExistente = (pagos || []).find(pg =>
+          pg.participation_id === p.participation_id && pg.mes === mes && pg.anio === anio
+        );
+
+        evs.push({
+          fecha: fechaPago.toISOString().split("T")[0],
+          label: `${p.investor_name} — ${p.order_title}`,
+          monto: interesMensual,
+          pagado: pagoExistente?.status === "pagado",
+          alerta: diasRestantes <= 3 && diasRestantes >= 0 && !pagoExistente,
+          icono: pagoExistente?.status === "pagado" ? "✅" : diasRestantes <= 3 ? "⚠️" : "💰",
+        });
+      }
+    });
+
+    setEventos(evs);
+    setLoading(false);
+  }
+
+  if (loading) return <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>Cargando calendario...</div>;
+
+  const hoy = new Date();
+  const alertas = eventos.filter(e => e.alerta && !e.pagado);
+
+  return (
+    <div>
+      <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a", marginBottom: 20 }}>Calendario de pagos</div>
+
+      {alertas.length > 0 && (
+        <div style={{ background: "#fef2f2", border: "1.5px solid #fecaca", borderRadius: 14, padding: "14px 18px", marginBottom: 20 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#dc2626", marginBottom: 8 }}>⚠️ {alertas.length} pago{alertas.length > 1 ? "s" : ""} próximo{alertas.length > 1 ? "s" : ""} en los próximos 3 días</div>
+          {alertas.map((e, i) => (
+            <div key={i} style={{ fontSize: 13, color: "#374151", marginBottom: 4 }}>
+              • {e.label} — {fmt(e.monto)} — {fmtDate(e.fecha)}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Calendario eventos={eventos} titulo="Pagos mensuales" />
+    </div>
+  );
+}
+
+function PortalCalendario({ profileId }) {
+  const [eventos, setEventos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { loadData(); }, []);
+
+  async function loadData() {
+    setLoading(true);
+    const [{ data: parts }, { data: pagos }] = await Promise.all([
+      supabase.from("participation_detail").select("*").eq("investor_id", profileId).eq("status", "active"),
+      supabase.from("pagos_mensuales").select("*").eq("investor_id", profileId),
+    ]);
+
+    const hoy = new Date();
+    const evs = [];
+
+    (parts || []).forEach(p => {
+      if (!p.start_date || !p.end_date) return;
+      const start = new Date(p.start_date);
+      const interesMensual = parseFloat(p.amount) * parseFloat(p.interest_rate) / (p.term_months || 1);
+
+      for (let m = 1; m <= (p.term_months || 1); m++) {
+        const fechaPago = new Date(start);
+        fechaPago.setMonth(fechaPago.getMonth() + m);
+        const mes = fechaPago.getMonth() + 1;
+        const anio = fechaPago.getFullYear();
+        const diasRestantes = Math.ceil((fechaPago - hoy) / (1000 * 60 * 60 * 24));
+
+        const pagoExistente = (pagos || []).find(pg => pg.mes === mes && pg.anio === anio);
+
+        evs.push({
+          fecha: fechaPago.toISOString().split("T")[0],
+          label: p.order_title,
+          monto: interesMensual,
+          pagado: pagoExistente?.status === "pagado",
+          alerta: diasRestantes <= 3 && diasRestantes >= 0 && !pagoExistente,
+          icono: pagoExistente?.status === "pagado" ? "✅" : "💰",
+        });
+      }
+    });
+
+    setEventos(evs);
+    setLoading(false);
+  }
+
+  if (loading) return <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>Cargando...</div>;
+
+  const proximoPago = eventos.filter(e => !e.pagado && new Date(e.fecha) >= new Date()).sort((a,b) => new Date(a.fecha) - new Date(b.fecha))[0];
+
+  return (
+    <div>
+      <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a", marginBottom: 20 }}>Mi calendario de cobros</div>
+
+      {proximoPago && (
+        <div style={{ background: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: 14, padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ fontSize: 32 }}>💰</div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#15803d" }}>Próximo cobro de interés</div>
+            <div style={{ fontSize: 13, color: "#374151", marginTop: 3 }}>{proximoPago.label} — <strong>{fmt(proximoPago.monto)}</strong></div>
+            <div style={{ fontSize: 12, color: "#16a34a", marginTop: 2, fontWeight: 600 }}>{fmtDate(proximoPago.fecha)} — {Math.ceil((new Date(proximoPago.fecha) - new Date()) / (1000*60*60*24))} días restantes</div>
+          </div>
+        </div>
+      )}
+
+      <Calendario eventos={eventos} titulo="Mis cobros" />
+    </div>
+  );
+}
+
 function AdminView({ perfil, onLogout }) {
   const [tab, setTab] = useState("dashboard");
   const [reload, setReload] = useState(0);
@@ -1800,6 +2051,7 @@ function AdminView({ perfil, onLogout }) {
     { id: "ordenes", label: "📋 Órdenes" },
     { id: "inversionistas", label: "👥 Inversionistas" },
     { id: "pagos", label: "💳 Pagos mensuales" },
+    { id: "calendario", label: "📅 Calendario" },
     { id: "vencimientos", label: "⏰ Vencimientos" },
   ];
   return (
@@ -1810,6 +2062,7 @@ function AdminView({ perfil, onLogout }) {
         {tab === "ordenes" && <AdminOrdenes profileId={perfil.id} />}
         {tab === "inversionistas" && <AdminInversionistas />}
         {tab === "pagos" && <AdminPagosMensuales />}
+        {tab === "calendario" && <AdminCalendario />}
         {tab === "vencimientos" && <AdminVencimientos />}
       </div>
     </div>
@@ -1830,6 +2083,7 @@ function InvestorView({ perfil, onLogout }) {
   const tabs = [
     { id: "dashboard", label: "📊 Mi cuenta" },
     { id: "oportunidades", label: "🔍 Oportunidades" },
+    { id: "calendario", label: "📅 Calendario" },
     { id: "historial", label: "📂 Historial" },
     { id: "movimientos", label: "💳 Movimientos" },
   ];
@@ -1839,6 +2093,7 @@ function InvestorView({ perfil, onLogout }) {
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 20px" }}>
         {tab === "dashboard" && <PortalDashboard profileId={perfil.id} reloadKey={reloadCount} />}
         {tab === "oportunidades" && <PortalOportunidades profileId={perfil.id} />}
+        {tab === "calendario" && <PortalCalendario profileId={perfil.id} />}
         {tab === "historial" && <PortalHistorial profileId={perfil.id} />}
         {tab === "movimientos" && <PortalMovimientos profileId={perfil.id} />}
       </div>

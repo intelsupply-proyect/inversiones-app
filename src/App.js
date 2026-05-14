@@ -2506,22 +2506,30 @@ async function guardarOC(editando = false) {
                     <td style={{ padding: "11px 14px" }}>
                       <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>{s.label}</span>
                     </td>
-                    <td style={{ padding: "11px 14px" }}>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        {est !== "pagado" && (
-                          <Btn variant="success" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>
-                            💰 Cobrar
-                          </Btn>
-                        )}
-                        <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️</Btn>
-                        <Btn variant="danger" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
-                      </div>
-                    </td>
+                  <td style={{ padding: "11px 14px" }}>
+  {oc.documento_url
+    ? <a href={oc.documento_url} target="_blank" rel="noreferrer">
+        <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }}>📎 Ver</Btn>
+      </a>
+    : <span style={{ fontSize: 11, color: "#cbd5e1" }}>—</span>
+  }
+</td>
+<td style={{ padding: "11px 14px" }}>
+  <div style={{ display: "flex", gap: 6 }}>
+    {est !== "pagado" && (
+      <Btn variant="success" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>
+        💰 Cobrar
+      </Btn>
+    )}
+    <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️</Btn>
+    <Btn variant="danger" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
+  </div>
+</td>
                   </tr>
                 );
               })}
               {filtradas.length === 0 && (
-                <tr><td colSpan={9} style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>No hay OC registradas</td></tr>
+                <tr><td colSpan={10} style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>No hay OC registradas</td></tr>
               )}
             </tbody>
           </table>

@@ -2254,40 +2254,6 @@ function AdminOCxCobrar() {
     vencido:  { bg: "#fee2e2", color: "#991b1b", label: "🔴 Vencida" },
   };
 
-  const FormOC = ({ titulo, onGuardar, onCerrar }) => (
-    <Modal open={true} onClose={onCerrar} title={titulo} maxWidth={560}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <div style={{ gridColumn: "1/-1" }}>
-          <Sel label="Cliente *" value={form.cliente_id} onChange={e => handleClienteChange(e.target.value)}>
-            <option value="">Seleccionar cliente...</option>
-            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre} ({c.plazo_dias}d)</option>)}
-          </Sel>
-        </div>
-        <Input label="N° OC *" value={form.numero_oc} onChange={e => setForm(p => ({ ...p, numero_oc: e.target.value }))} placeholder="Ej: 265*000 OP" />
-        <Input label="Monto total ($) *" type="number" value={form.monto_total} onChange={e => setForm(p => ({ ...p, monto_total: e.target.value }))} placeholder="2500.00" />
-        <div style={{ gridColumn: "1/-1" }}>
-          <Input label="Descripción" value={form.descripcion} onChange={e => setForm(p => ({ ...p, descripcion: e.target.value }))} placeholder="Ej: TARIMA PARA BARRIL" />
-        </div>
-        <Input label="Fecha facturación" type="date" value={form.fecha_facturacion} onChange={e => handleFechaFacturacion(e.target.value)} />
-        <Input label="Fecha vencimiento (auto)" type="date" value={form.fecha_vencimiento} onChange={e => setForm(p => ({ ...p, fecha_vencimiento: e.target.value }))} />
-        <Input label="Fecha pago esperado" type="date" value={form.fecha_pago_esperado} onChange={e => setForm(p => ({ ...p, fecha_pago_esperado: e.target.value }))} />
-        <Input label="Fecha pago real (si ya cobró)" type="date" value={form.fecha_pago_real} onChange={e => setForm(p => ({ ...p, fecha_pago_real: e.target.value }))} />
-        <div style={{ gridColumn: "1/-1" }}>
-          <Input label="Notas (opcional)" value={form.notas} onChange={e => setForm(p => ({ ...p, notas: e.target.value }))} placeholder="Observaciones..." />
-        </div>
-      </div>
-      {form.fecha_facturacion && form.monto_total && (
-        <div style={{ background: "#f0fdf4", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#15803d" }}>
-          💡 Vencimiento calculado automáticamente según el plazo del cliente seleccionado
-        </div>
-      )}
-      <div style={{ display: "flex", gap: 8 }}>
-        <Btn variant="secondary" onClick={onCerrar} style={{ flex: 1 }}>Cancelar</Btn>
-        <Btn onClick={onGuardar} disabled={saving} style={{ flex: 1 }}>{saving ? "Guardando..." : "Guardar OC"}</Btn>
-      </div>
-    </Modal>
-  );
-
   if (loading) return <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>Cargando...</div>;
 
   return (

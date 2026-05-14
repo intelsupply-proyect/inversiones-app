@@ -2485,7 +2485,7 @@ async function guardarOC(editando = false) {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr style={{ background: "#f8fafc" }}>
-                {["Cliente", "N° OC", "Descripción", "Monto", "Facturación", "Vencimiento", "Pago Esp.", "Estado", ""].map(h => (
+               {["Cliente", "N° OC", "Descripción", "Monto", "Facturación", "Vencimiento", "Pago Esp.", "Estado", "Doc", ""].map(h => (
                   <th key={h} style={{ padding: "11px 14px", textAlign: "left", fontWeight: 600, color: "#64748b", fontSize: 11 }}>{h}</th>
                 ))}
               </tr>

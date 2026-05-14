@@ -2216,6 +2216,9 @@ function AdminOCxCobrar() {
   const [fechaPagoReal, setFechaPagoReal] = useState("");
   const [saving, setSaving] = useState(false);
   const [vistaCalendario, setVistaCalendario] = useState(false);
+  const [docFile, setDocFile] = useState(null);
+  const [docPreview, setDocPreview] = useState(null);
+  const [analizando, setAnalizando] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 

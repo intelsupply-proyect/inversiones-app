@@ -2085,7 +2085,342 @@ function PortalCalendario({ profileId }) {
     </div>
   );
 }
+// ─── ADMIN: OC x COBRAR ──────────────────────────────────────────────────────
+function AdminOCxCobrar() {
+  const [ordenes, setOrdenes] = useState([]);
+  const [clientes, setClientes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filtroCliente, setFiltroCliente] = useState("all");
+  const [filtroEstado, setFiltroEstado] = useState("all");
+  const [modalNueva, setModalNueva] = useState(false);
+  const [modalEditar, setModalEditar] = useState(null);
+  const [modalCliente, setModalCliente] = useState(false);
+  const [modalPagar, setModalPagar] = useState(null);
+  const [nuevoCliente, setNuevoCliente] = useState({ nombre: "", plazo_dias: 90 });
+  const [form, setForm] = useState({
+    cliente_id: "", numero_oc: "", descripcion: "",
+    fecha_facturacion: "", monto_total: "",
+    fecha_vencimiento: "", fecha_pago_esperado: "",
+    fecha_pago_real: "", notas: ""
+  });
+  const [fechaPagoReal, setFechaPagoReal] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [vistaCalendario, setVistaCalendario] = useState(false);
 
+  useEffect(() => { loadData(); }, []);
+
+  async function loadData() {
+    setLoading(true);
+    const [{ data: ords }, { data: cls }] = await Promise.all([
+      supabase.from("ordenes_por_cobrar").select("*, clientes_oc(nombre, plazo_dias)").order("created_at", { ascending: false }),
+      supabase.from("clientes_oc").select("*").order("nombre"),
+    ]);
+    setOrdenes(ords || []);
+    setClientes(cls || []);
+    setLoading(false);
+  }
+
+  function getEstadoReal(oc) {
+    if (oc.fecha_pago_real) return "pagado";
+    if (oc.fecha_vencimiento && new Date(oc.fecha_vencimiento) < new Date()) return "vencido";
+    return "pendiente";
+  }
+
+  function autoVencimiento(fechaFacturacion, plazo) {
+    if (!fechaFacturacion || !plazo) return "";
+    const d = new Date(fechaFacturacion);
+    d.setDate(d.getDate() + parseInt(plazo));
+    return d.toISOString().split("T")[0];
+  }
+
+  function handleClienteChange(clienteId) {
+    const cl = clientes.find(c => c.id === clienteId);
+    const venc = form.fecha_facturacion
+      ? autoVencimiento(form.fecha_facturacion, cl?.plazo_dias || 90)
+      : "";
+    setForm(p => ({ ...p, cliente_id: clienteId, fecha_vencimiento: venc }));
+  }
+
+  function handleFechaFacturacion(fecha) {
+    const cl = clientes.find(c => c.id === form.cliente_id);
+    const venc = autoVencimiento(fecha, cl?.plazo_dias || 90);
+    setForm(p => ({ ...p, fecha_facturacion: fecha, fecha_vencimiento: venc }));
+  }
+
+  async function guardarOC(editando = false) {
+    if (!form.cliente_id || !form.numero_oc || !form.monto_total) return;
+    setSaving(true);
+    const payload = {
+      cliente_id: form.cliente_id,
+      numero_oc: form.numero_oc,
+      descripcion: form.descripcion,
+      fecha_facturacion: form.fecha_facturacion || null,
+      monto_total: parseFloat(form.monto_total),
+      fecha_vencimiento: form.fecha_vencimiento || null,
+      fecha_pago_esperado: form.fecha_pago_esperado || null,
+      fecha_pago_real: form.fecha_pago_real || null,
+      notas: form.notas,
+      estado: form.fecha_pago_real ? "pagado" : "pendiente",
+    };
+    if (editando) {
+      await supabase.from("ordenes_por_cobrar").update(payload).eq("id", modalEditar.id);
+      setModalEditar(null);
+    } else {
+      await supabase.from("ordenes_por_cobrar").insert(payload);
+      setModalNueva(false);
+    }
+    setForm({ cliente_id: "", numero_oc: "", descripcion: "", fecha_facturacion: "", monto_total: "", fecha_vencimiento: "", fecha_pago_esperado: "", fecha_pago_real: "", notas: "" });
+    loadData();
+    setSaving(false);
+  }
+
+  async function eliminarOC(id) {
+    if (!window.confirm("¿Eliminar esta OC?")) return;
+    await supabase.from("ordenes_por_cobrar").delete().eq("id", id);
+    loadData();
+  }
+
+  async function marcarPagada(oc) {
+    if (!fechaPagoReal) return;
+    setSaving(true);
+    await supabase.from("ordenes_por_cobrar").update({
+      fecha_pago_real: fechaPagoReal,
+      estado: "pagado"
+    }).eq("id", oc.id);
+    setModalPagar(null);
+    setFechaPagoReal("");
+    loadData();
+    setSaving(false);
+  }
+
+  async function agregarCliente() {
+    if (!nuevoCliente.nombre) return;
+    setSaving(true);
+    await supabase.from("clientes_oc").insert(nuevoCliente);
+    setNuevoCliente({ nombre: "", plazo_dias: 90 });
+    setModalCliente(false);
+    loadData();
+    setSaving(false);
+  }
+
+  function abrirEditar(oc) {
+    setForm({
+      cliente_id: oc.cliente_id,
+      numero_oc: oc.numero_oc,
+      descripcion: oc.descripcion || "",
+      fecha_facturacion: oc.fecha_facturacion || "",
+      monto_total: oc.monto_total || "",
+      fecha_vencimiento: oc.fecha_vencimiento || "",
+      fecha_pago_esperado: oc.fecha_pago_esperado || "",
+      fecha_pago_real: oc.fecha_pago_real || "",
+      notas: oc.notas || "",
+    });
+    setModalEditar(oc);
+  }
+
+  // KPIs
+  const filtradas = ordenes.filter(o => {
+    const est = getEstadoReal(o);
+    const okCliente = filtroCliente === "all" || o.cliente_id === filtroCliente;
+    const okEstado = filtroEstado === "all" || est === filtroEstado;
+    return okCliente && okEstado;
+  });
+
+  const pagadas = ordenes.filter(o => getEstadoReal(o) === "pagado");
+  const pendientes = ordenes.filter(o => getEstadoReal(o) === "pendiente");
+  const vencidas = ordenes.filter(o => getEstadoReal(o) === "vencido");
+  const sum = arr => arr.reduce((a, b) => a + parseFloat(b.monto_total || 0), 0);
+
+  // Eventos para calendario
+  const eventosCalendario = ordenes.flatMap(oc => {
+    const evs = [];
+    const estado = getEstadoReal(oc);
+    const nombreCliente = oc.clientes_oc?.nombre || "";
+    if (oc.fecha_facturacion) evs.push({ fecha: oc.fecha_facturacion, label: `📄 ${oc.numero_oc} ${nombreCliente}`, monto: null, pagado: false, alerta: false, icono: "📄" });
+    if (oc.fecha_pago_real) evs.push({ fecha: oc.fecha_pago_real, label: `✅ ${oc.numero_oc} ${nombreCliente}`, monto: oc.monto_total, pagado: true, alerta: false, icono: "✅" });
+    else if (oc.fecha_pago_esperado) {
+      const dias = Math.ceil((new Date(oc.fecha_pago_esperado) - new Date()) / (1000*60*60*24));
+      evs.push({ fecha: oc.fecha_pago_esperado, label: `💰 ${oc.numero_oc} ${nombreCliente}`, monto: oc.monto_total, pagado: false, alerta: dias <= 5 && dias >= 0, icono: estado === "vencido" ? "🔴" : "💰" });
+    } else if (oc.fecha_vencimiento && estado !== "pagado") {
+      const dias = Math.ceil((new Date(oc.fecha_vencimiento) - new Date()) / (1000*60*60*24));
+      evs.push({ fecha: oc.fecha_vencimiento, label: `⚠️ ${oc.numero_oc} vence`, monto: oc.monto_total, pagado: false, alerta: dias <= 7 && dias >= 0, icono: estado === "vencido" ? "🔴" : "⚠️" });
+    }
+    return evs;
+  });
+
+  const estadoStyle = {
+    pagado:   { bg: "#dcfce7", color: "#15803d", label: "✅ Cobrada" },
+    pendiente:{ bg: "#fef9c3", color: "#854d0e", label: "⏳ Pendiente" },
+    vencido:  { bg: "#fee2e2", color: "#991b1b", label: "🔴 Vencida" },
+  };
+
+  const FormOC = ({ titulo, onGuardar, onCerrar }) => (
+    <Modal open={true} onClose={onCerrar} title={titulo} maxWidth={560}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div style={{ gridColumn: "1/-1" }}>
+          <Sel label="Cliente *" value={form.cliente_id} onChange={e => handleClienteChange(e.target.value)}>
+            <option value="">Seleccionar cliente...</option>
+            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre} ({c.plazo_dias}d)</option>)}
+          </Sel>
+        </div>
+        <Input label="N° OC *" value={form.numero_oc} onChange={e => setForm(p => ({ ...p, numero_oc: e.target.value }))} placeholder="Ej: 265*000 OP" />
+        <Input label="Monto total ($) *" type="number" value={form.monto_total} onChange={e => setForm(p => ({ ...p, monto_total: e.target.value }))} placeholder="2500.00" />
+        <div style={{ gridColumn: "1/-1" }}>
+          <Input label="Descripción" value={form.descripcion} onChange={e => setForm(p => ({ ...p, descripcion: e.target.value }))} placeholder="Ej: TARIMA PARA BARRIL" />
+        </div>
+        <Input label="Fecha facturación" type="date" value={form.fecha_facturacion} onChange={e => handleFechaFacturacion(e.target.value)} />
+        <Input label="Fecha vencimiento (auto)" type="date" value={form.fecha_vencimiento} onChange={e => setForm(p => ({ ...p, fecha_vencimiento: e.target.value }))} />
+        <Input label="Fecha pago esperado" type="date" value={form.fecha_pago_esperado} onChange={e => setForm(p => ({ ...p, fecha_pago_esperado: e.target.value }))} />
+        <Input label="Fecha pago real (si ya cobró)" type="date" value={form.fecha_pago_real} onChange={e => setForm(p => ({ ...p, fecha_pago_real: e.target.value }))} />
+        <div style={{ gridColumn: "1/-1" }}>
+          <Input label="Notas (opcional)" value={form.notas} onChange={e => setForm(p => ({ ...p, notas: e.target.value }))} placeholder="Observaciones..." />
+        </div>
+      </div>
+      {form.fecha_facturacion && form.monto_total && (
+        <div style={{ background: "#f0fdf4", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#15803d" }}>
+          💡 Vencimiento calculado automáticamente según el plazo del cliente seleccionado
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <Btn variant="secondary" onClick={onCerrar} style={{ flex: 1 }}>Cancelar</Btn>
+        <Btn onClick={onGuardar} disabled={saving} style={{ flex: 1 }}>{saving ? "Guardando..." : "Guardar OC"}</Btn>
+      </div>
+    </Modal>
+  );
+
+  if (loading) return <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>Cargando...</div>;
+
+  return (
+    <div>
+      {/* HEADER */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
+        <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a", letterSpacing: "-0.03em" }}>📦 OC × Cobrar</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Btn variant="secondary" onClick={() => setVistaCalendario(v => !v)}>
+            {vistaCalendario ? "📋 Ver lista" : "📅 Ver calendario"}
+          </Btn>
+          <Btn variant="secondary" onClick={() => setModalCliente(true)}>+ Cliente</Btn>
+          <Btn onClick={() => { setForm({ cliente_id: "", numero_oc: "", descripcion: "", fecha_facturacion: "", monto_total: "", fecha_vencimiento: "", fecha_pago_esperado: "", fecha_pago_real: "", notas: "" }); setModalNueva(true); }}>+ Nueva OC</Btn>
+        </div>
+      </div>
+
+      {/* KPIs */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12, marginBottom: 24 }}>
+        {[
+          { label: "Cobradas", val: pagadas.length + " OC", sub: fmt(sum(pagadas)), color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
+          { label: "Pendientes", val: pendientes.length + " OC", sub: fmt(sum(pendientes)), color: "#854d0e", bg: "#fef9c3", border: "#fde68a" },
+          { label: "Vencidas", val: vencidas.length + " OC", sub: fmt(sum(vencidas)), color: "#991b1b", bg: "#fee2e2", border: "#fecaca" },
+          { label: "Por cobrar", val: (pendientes.length + vencidas.length) + " OC", sub: fmt(sum([...pendientes, ...vencidas])), color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe" },
+        ].map(k => (
+          <div key={k.label} style={{ background: k.bg, borderRadius: 14, padding: "16px 18px", border: `1.5px solid ${k.border}` }}>
+            <div style={{ fontSize: 11, color: "#64748b", textTransform: "uppercase", fontWeight: 600, marginBottom: 4 }}>{k.label}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: k.color }}>{k.val}</div>
+            <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>{k.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* FILTROS */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        <select value={filtroCliente} onChange={e => setFiltroCliente(e.target.value)}
+          style={{ padding: "7px 12px", borderRadius: 10, border: "1.5px solid #e2e8f0", fontSize: 12, color: "#374151", background: "#fff", cursor: "pointer" }}>
+          <option value="all">Todos los clientes</option>
+          {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+        </select>
+        {["all","pendiente","pagado","vencido"].map(f => (
+          <button key={f} onClick={() => setFiltroEstado(f)}
+            style={{ border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+              background: filtroEstado === f ? "#0f172a" : "#f1f5f9", color: filtroEstado === f ? "#fff" : "#64748b" }}>
+            {f === "all" ? "Todas" : f === "pendiente" ? "⏳ Pendientes" : f === "pagado" ? "✅ Cobradas" : "🔴 Vencidas"}
+          </button>
+        ))}
+      </div>
+
+      {/* VISTA CALENDARIO */}
+      {vistaCalendario ? (
+        <Calendario eventos={eventosCalendario} titulo="OC x Cobrar" />
+      ) : (
+        /* VISTA LISTA */
+        <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: "#f8fafc" }}>
+                {["Cliente", "N° OC", "Descripción", "Monto", "Facturación", "Vencimiento", "Pago Esp.", "Estado", ""].map(h => (
+                  <th key={h} style={{ padding: "11px 14px", textAlign: "left", fontWeight: 600, color: "#64748b", fontSize: 11 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtradas.map((oc, i) => {
+                const est = getEstadoReal(oc);
+                const s = estadoStyle[est];
+                return (
+                  <tr key={oc.id} style={{ borderTop: "1px solid #f1f5f9", background: i % 2 === 0 ? "#fff" : "#fafbfc" }}>
+                    <td style={{ padding: "11px 14px", fontWeight: 600, fontSize: 12 }}>{oc.clientes_oc?.nombre}</td>
+                    <td style={{ padding: "11px 14px", fontFamily: "monospace", fontSize: 11, color: "#64748b" }}>{oc.numero_oc}</td>
+                    <td style={{ padding: "11px 14px", color: "#374151", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{oc.descripcion || "—"}</td>
+                    <td style={{ padding: "11px 14px", fontWeight: 700 }}>{fmt(oc.monto_total)}</td>
+                    <td style={{ padding: "11px 14px", color: "#64748b" }}>{fmtDate(oc.fecha_facturacion)}</td>
+                    <td style={{ padding: "11px 14px", color: est === "vencido" ? "#dc2626" : "#64748b", fontWeight: est === "vencido" ? 700 : 400 }}>{fmtDate(oc.fecha_vencimiento)}</td>
+                    <td style={{ padding: "11px 14px", color: "#64748b" }}>{fmtDate(oc.fecha_pago_esperado)}</td>
+                    <td style={{ padding: "11px 14px" }}>
+                      <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>{s.label}</span>
+                    </td>
+                    <td style={{ padding: "11px 14px" }}>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {est !== "pagado" && (
+                          <Btn variant="success" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>
+                            💰 Cobrar
+                          </Btn>
+                        )}
+                        <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️</Btn>
+                        <Btn variant="danger" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtradas.length === 0 && (
+                <tr><td colSpan={9} style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>No hay OC registradas</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* MODAL NUEVA OC */}
+      {modalNueva && <FormOC titulo="Nueva OC por cobrar" onGuardar={() => guardarOC(false)} onCerrar={() => setModalNueva(false)} />}
+
+      {/* MODAL EDITAR OC */}
+      {modalEditar && <FormOC titulo={`Editar OC — ${modalEditar.numero_oc}`} onGuardar={() => guardarOC(true)} onCerrar={() => setModalEditar(null)} />}
+
+      {/* MODAL MARCAR PAGADA */}
+      <Modal open={!!modalPagar} onClose={() => setModalPagar(null)} title="Registrar cobro" maxWidth={400}>
+        <div style={{ background: "#f8fafc", borderRadius: 12, padding: 14, marginBottom: 16 }}>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{modalPagar?.numero_oc} — {modalPagar?.clientes_oc?.nombre}</div>
+          <div style={{ fontSize: 13 }}>Monto: <strong style={{ color: "#16a34a" }}>{fmt(modalPagar?.monto_total)}</strong></div>
+          <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>{modalPagar?.descripcion}</div>
+        </div>
+        <Input label="Fecha en que se recibió el pago" type="date" value={fechaPagoReal} onChange={e => setFechaPagoReal(e.target.value)} />
+        <div style={{ display: "flex", gap: 8 }}>
+          <Btn variant="secondary" onClick={() => setModalPagar(null)} style={{ flex: 1 }}>Cancelar</Btn>
+          <Btn variant="success" onClick={() => marcarPagada(modalPagar)} disabled={saving} style={{ flex: 1 }}>✅ Confirmar cobro</Btn>
+        </div>
+      </Modal>
+
+      {/* MODAL NUEVO CLIENTE */}
+      <Modal open={modalCliente} onClose={() => setModalCliente(false)} title="Agregar cliente" maxWidth={380}>
+        <Input label="Nombre del cliente *" value={nuevoCliente.nombre} onChange={e => setNuevoCliente(p => ({ ...p, nombre: e.target.value }))} placeholder="Ej: Bimbo Panamá" />
+        <Input label="Plazo de pago (días)" type="number" value={nuevoCliente.plazo_dias} onChange={e => setNuevoCliente(p => ({ ...p, plazo_dias: e.target.value }))} placeholder="90" />
+        <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 14 }}>El plazo se usa para calcular automáticamente la fecha de vencimiento al crear una OC.</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Btn variant="secondary" onClick={() => setModalCliente(false)} style={{ flex: 1 }}>Cancelar</Btn>
+          <Btn onClick={agregarCliente} disabled={saving} style={{ flex: 1 }}>{saving ? "Guardando..." : "Agregar cliente"}</Btn>
+        </div>
+      </Modal>
+    </div>
+  );
+}
 function AdminView({ perfil, onLogout }) {
   const [tab, setTab] = useState("dashboard");
   const [reload, setReload] = useState(0);

@@ -2425,13 +2425,14 @@ function AdminView({ perfil, onLogout }) {
   const [tab, setTab] = useState("dashboard");
   const [reload, setReload] = useState(0);
   const tabs = [
-    { id: "dashboard", label: "📊 Dashboard" },
-    { id: "ordenes", label: "📋 Órdenes" },
-    { id: "inversionistas", label: "👥 Inversionistas" },
-    { id: "pagos", label: "💳 Pagos mensuales" },
-    { id: "calendario", label: "📅 Calendario" },
-    { id: "vencimientos", label: "⏰ Vencimientos" },
-  ];
+  { id: "dashboard", label: "📊 Dashboard" },
+  { id: "ordenes", label: "📋 Órdenes" },
+  { id: "inversionistas", label: "👥 Inversionistas" },
+  { id: "pagos", label: "💳 Pagos mensuales" },
+  { id: "calendario", label: "📅 Calendario" },
+  { id: "vencimientos", label: "⏰ Vencimientos" },
+  { id: "oc_cobrar", label: "📦 OC x Cobrar" },
+];
   return (
     <div style={{ minHeight: "100vh", background: "#f0f4f8", fontFamily: "'Inter','DM Sans','Segoe UI',sans-serif" }}>
       <Nav perfil={perfil} tab={tab} setTab={setTab} tabs={tabs} onLogout={onLogout} accentColor="#2563eb" />

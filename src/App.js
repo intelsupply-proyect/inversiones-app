@@ -2085,6 +2085,116 @@ function PortalCalendario({ profileId }) {
     </div>
   );
 }
+function autoVencimientoGlobal(fechaFacturacion, plazo) {
+  if (!fechaFacturacion || !plazo) return "";
+  const d = new Date(fechaFacturacion);
+  d.setDate(d.getDate() + parseInt(plazo));
+  return d.toISOString().split("T")[0];
+}
+
+function FormOC({ titulo, form, setForm, clientes, saving, docFile, setDocFile, docPreview, setDocPreview, analizando, onAnalizar, onGuardar, onCerrar }) {
+  const docRef = useRef(null);
+
+  function handleClienteChange(clienteId) {
+    const cl = clientes.find(c => c.id === clienteId);
+    const venc = form.fecha_facturacion ? autoVencimientoGlobal(form.fecha_facturacion, cl?.plazo_dias || 90) : "";
+    setForm(p => ({ ...p, cliente_id: clienteId, fecha_vencimiento: venc }));
+  }
+
+  function handleFechaFacturacion(fecha) {
+    const cl = clientes.find(c => c.id === form.cliente_id);
+    const venc = autoVencimientoGlobal(fecha, cl?.plazo_dias || 90);
+    setForm(p => ({ ...p, fecha_facturacion: fecha, fecha_vencimiento: venc }));
+  }
+
+  function handleDocFile(e) {
+    const f = e.target.files[0]; if (!f) return;
+    setDocFile(f); setDocPreview(URL.createObjectURL(f));
+  }
+
+  function handleDocPaste(e) {
+    const items = e.clipboardData?.items; if (!items) return;
+    for (let item of items) {
+      if (item.type.startsWith("image/")) {
+        const f = item.getAsFile();
+        setDocFile(f); setDocPreview(URL.createObjectURL(f)); break;
+      }
+    }
+  }
+
+  return (
+    <Modal open={true} onClose={onCerrar} title={titulo} maxWidth={600}>
+      {/* ZONA DOCUMENTO CON IA */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          Documento OC (imagen o PDF)
+        </div>
+        <div
+          onClick={() => docRef.current?.click()}
+          onPaste={handleDocPaste}
+          tabIndex={0}
+          style={{ border: "2px dashed #e2e8f0", borderRadius: 12, padding: docPreview ? 6 : 16, textAlign: "center", cursor: "pointer", background: "#fafafa", minHeight: 70, display: "flex", alignItems: "center", justifyContent: "center", outline: "none" }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = "#2563eb"}
+          onMouseLeave={e => e.currentTarget.style.borderColor = "#e2e8f0"}>
+          {docPreview
+            ? <img src={docPreview} alt="doc" style={{ maxHeight: 140, maxWidth: "100%", borderRadius: 8, objectFit: "contain" }} />
+            : <div>
+                <div style={{ fontSize: 22, marginBottom: 4 }}>📎</div>
+                <div style={{ fontSize: 12, color: "#64748b" }}>Clic para buscar archivo o pega imagen con Ctrl+V</div>
+                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>PNG, JPG, PDF</div>
+              </div>
+          }
+        </div>
+        <input ref={docRef} type="file" accept="image/*,.pdf" onChange={handleDocFile} style={{ display: "none" }} />
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          {docPreview && (
+            <button onClick={() => { setDocFile(null); setDocPreview(null); }}
+              style={{ border: "none", background: "#fef2f2", color: "#dc2626", borderRadius: 8, padding: "4px 10px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>
+              ✕ Quitar
+            </button>
+          )}
+          {docFile && (
+            <Btn onClick={onAnalizar} disabled={analizando} style={{ fontSize: 11, padding: "5px 14px", background: "#7c3aed", color: "#fff" }}>
+              {analizando ? "⏳ Analizando con IA..." : "✨ Leer con IA y llenar campos"}
+            </Btn>
+          )}
+        </div>
+      </div>
+
+      <div style={{ height: 1, background: "#f1f5f9", marginBottom: 16 }} />
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div style={{ gridColumn: "1/-1" }}>
+          <Sel label="Cliente *" value={form.cliente_id} onChange={e => handleClienteChange(e.target.value)}>
+            <option value="">Seleccionar cliente...</option>
+            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre} ({c.plazo_dias}d)</option>)}
+          </Sel>
+        </div>
+        <Input label="N° OC *" value={form.numero_oc} onChange={e => setForm(p => ({ ...p, numero_oc: e.target.value }))} placeholder="Ej: 265*000 OP" />
+        <Input label="Monto total ($) *" type="number" value={form.monto_total} onChange={e => setForm(p => ({ ...p, monto_total: e.target.value }))} placeholder="2500.00" />
+        <div style={{ gridColumn: "1/-1" }}>
+          <Input label="Descripción" value={form.descripcion} onChange={e => setForm(p => ({ ...p, descripcion: e.target.value }))} placeholder="Ej: TARIMA PARA BARRIL" />
+        </div>
+        <Input label="Fecha facturación" type="date" value={form.fecha_facturacion} onChange={e => handleFechaFacturacion(e.target.value)} />
+        <Input label="Fecha vencimiento (auto)" type="date" value={form.fecha_vencimiento} onChange={e => setForm(p => ({ ...p, fecha_vencimiento: e.target.value }))} />
+        <Input label="Fecha pago esperado" type="date" value={form.fecha_pago_esperado} onChange={e => setForm(p => ({ ...p, fecha_pago_esperado: e.target.value }))} />
+        <Input label="Fecha pago real (si ya cobró)" type="date" value={form.fecha_pago_real} onChange={e => setForm(p => ({ ...p, fecha_pago_real: e.target.value }))} />
+        <div style={{ gridColumn: "1/-1" }}>
+          <Input label="Notas (opcional)" value={form.notas} onChange={e => setForm(p => ({ ...p, notas: e.target.value }))} placeholder="Observaciones..." />
+        </div>
+      </div>
+      {form.fecha_facturacion && form.monto_total && (
+        <div style={{ background: "#f0fdf4", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#15803d" }}>
+          💡 Vencimiento calculado automáticamente según el plazo del cliente seleccionado
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <Btn variant="secondary" onClick={onCerrar} style={{ flex: 1 }}>Cancelar</Btn>
+        <Btn onClick={onGuardar} disabled={saving} style={{ flex: 1 }}>{saving ? "Guardando..." : "Guardar OC"}</Btn>
+      </div>
+    </Modal>
+  );
+}
 // ─── ADMIN: OC x COBRAR ──────────────────────────────────────────────────────
 function AdminOCxCobrar() {
   const [ordenes, setOrdenes] = useState([]);

@@ -2443,6 +2443,7 @@ function AdminView({ perfil, onLogout }) {
         {tab === "pagos" && <AdminPagosMensuales />}
         {tab === "calendario" && <AdminCalendario />}
         {tab === "vencimientos" && <AdminVencimientos />}
+        {tab === "oc_cobrar" && <AdminOCxCobrar />}
       </div>
     </div>
   );

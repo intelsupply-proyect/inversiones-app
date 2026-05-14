@@ -2310,32 +2310,43 @@ Si no encuentras algún campo déjalo vacío. Responde SOLO el JSON.` }
   }
   setAnalizando(false);
 }
-  async function guardarOC(editando = false) {
-    if (!form.cliente_id || !form.numero_oc || !form.monto_total) return;
-    setSaving(true);
-    const payload = {
-      cliente_id: form.cliente_id,
-      numero_oc: form.numero_oc,
-      descripcion: form.descripcion,
-      fecha_facturacion: form.fecha_facturacion || null,
-      monto_total: parseFloat(form.monto_total),
-      fecha_vencimiento: form.fecha_vencimiento || null,
-      fecha_pago_esperado: form.fecha_pago_esperado || null,
-      fecha_pago_real: form.fecha_pago_real || null,
-      notas: form.notas,
-      estado: form.fecha_pago_real ? "pagado" : "pendiente",
-    };
-    if (editando) {
-      await supabase.from("ordenes_por_cobrar").update(payload).eq("id", modalEditar.id);
-      setModalEditar(null);
-    } else {
-      await supabase.from("ordenes_por_cobrar").insert(payload);
-      setModalNueva(false);
-    }
-    setForm({ cliente_id: "", numero_oc: "", descripcion: "", fecha_facturacion: "", monto_total: "", fecha_vencimiento: "", fecha_pago_esperado: "", fecha_pago_real: "", notas: "" });
-    loadData();
-    setSaving(false);
+async function guardarOC(editando = false) {
+  if (!form.cliente_id || !form.numero_oc || !form.monto_total) return;
+  setSaving(true);
+  let documento_url = editando ? (modalEditar.documento_url || null) : null;
+  if (docFile) {
+    try {
+      const ext = docFile.name?.split(".").pop() || "jpg";
+      const path = `oc-docs/${Date.now()}.${ext}`;
+      await supabase.storage.from("oc-documentos").upload(path, docFile, { contentType: docFile.type });
+      const { data: urlData } = supabase.storage.from("oc-documentos").getPublicUrl(path);
+      documento_url = urlData.publicUrl;
+    } catch(e) { console.error("Error subiendo doc:", e); }
   }
+  const payload = {
+    cliente_id: form.cliente_id,
+    numero_oc: form.numero_oc,
+    descripcion: form.descripcion,
+    fecha_facturacion: form.fecha_facturacion || null,
+    monto_total: parseFloat(form.monto_total),
+    fecha_vencimiento: form.fecha_vencimiento || null,
+    fecha_pago_esperado: form.fecha_pago_esperado || null,
+    fecha_pago_real: form.fecha_pago_real || null,
+    notas: form.notas,
+    estado: form.fecha_pago_real ? "pagado" : "pendiente",
+    documento_url,
+  };
+  if (editando) {
+    await supabase.from("ordenes_por_cobrar").update(payload).eq("id", modalEditar.id);
+    setModalEditar(null);
+  } else {
+    await supabase.from("ordenes_por_cobrar").insert(payload);
+    setModalNueva(false);
+  }
+  setForm({ cliente_id: "", numero_oc: "", descripcion: "", fecha_facturacion: "", monto_total: "", fecha_vencimiento: "", fecha_pago_esperado: "", fecha_pago_real: "", notas: "" });
+  setDocFile(null); setDocPreview(null);
+  loadData(); setSaving(false);
+}
 
   async function eliminarOC(id) {
     if (!window.confirm("¿Eliminar esta OC?")) return;

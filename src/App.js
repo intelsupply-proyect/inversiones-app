@@ -2518,7 +2518,7 @@ Si no encuentras algún campo déjalo vacío. Responde SOLO el JSON.` }
       )}
 
       {/* MODAL NUEVA OC */}
-      {modalNueva && <FormOC titulo="Nueva OC por cobrar" onGuardar={() => guardarOC(false)} onCerrar={() => setModalNueva(false)} />}
+     {modalNueva && <FormOC titulo="Nueva OC por cobrar" form={form} setForm={setForm} clientes={clientes} saving={saving} docFile={docFile} setDocFile={setDocFile} docPreview={docPreview} setDocPreview={setDocPreview} analizando={analizando} onAnalizar={analizarDocumento} onGuardar={() => guardarOC(false)} onCerrar={() => { setModalNueva(false); setDocFile(null); setDocPreview(null); }} />}
 
       {/* MODAL EDITAR OC */}
       {modalEditar && <FormOC titulo={`Editar OC — ${modalEditar.numero_oc}`} onGuardar={() => guardarOC(true)} onCerrar={() => setModalEditar(null)} />}

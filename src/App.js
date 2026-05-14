@@ -2259,7 +2259,57 @@ function AdminOCxCobrar() {
     const venc = autoVencimiento(fecha, cl?.plazo_dias || 90);
     setForm(p => ({ ...p, fecha_facturacion: fecha, fecha_vencimiento: venc }));
   }
-
+async function analizarDocumento() {
+  if (!docFile) return;
+  setAnalizando(true);
+  try {
+    const base64 = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result.split(",")[1]);
+      r.onerror = rej;
+      r.readAsDataURL(docFile);
+    });
+    const mediaType = docFile.type || "image/jpeg";
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
+            { type: "text", text: `Analiza esta orden de compra y extrae la siguiente información en formato JSON puro sin markdown:
+{
+  "numero_oc": "número o código de la OC",
+  "descripcion": "descripción del producto o servicio",
+  "monto_total": "monto numérico sin símbolos",
+  "fecha_facturacion": "fecha en formato YYYY-MM-DD o vacío",
+  "notas": "cualquier observación relevante"
+}
+Si no encuentras algún campo déjalo vacío. Responde SOLO el JSON.` }
+          ]
+        }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.[0]?.text || "";
+    const clean = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
+    setForm(p => ({
+      ...p,
+      numero_oc: parsed.numero_oc || p.numero_oc,
+      descripcion: parsed.descripcion || p.descripcion,
+      monto_total: parsed.monto_total || p.monto_total,
+      fecha_facturacion: parsed.fecha_facturacion || p.fecha_facturacion,
+      notas: parsed.notas || p.notas,
+    }));
+  } catch (e) {
+    console.error("Error analizando documento:", e);
+  }
+  setAnalizando(false);
+}
   async function guardarOC(editando = false) {
     if (!form.cliente_id || !form.numero_oc || !form.monto_total) return;
     setSaving(true);

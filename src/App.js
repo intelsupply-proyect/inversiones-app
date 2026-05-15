@@ -2471,13 +2471,14 @@ const enProceso = ordenes.filter(o => getEstadoReal(o) === "en_proceso");
           <option value="all">Todos los clientes</option>
           {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
         </select>
-        {["all","pendiente","pagado","vencido"].map(f => (
-          <button key={f} onClick={() => setFiltroEstado(f)}
-            style={{ border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer",
-              background: filtroEstado === f ? "#0f172a" : "#f1f5f9", color: filtroEstado === f ? "#fff" : "#64748b" }}>
-            {f === "all" ? "Todas" : f === "pendiente" ? "⏳ Pendientes" : f === "pagado" ? "✅ Cobradas" : "🔴 Vencidas"}
-          </button>
-        ))}
+        {["all","en_proceso","pendiente","pagado","vencido"].map(f => (
+  <button key={f} onClick={() => setFiltroEstado(f)}
+    style={{ border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+      background: filtroEstado === f ? (f === "en_proceso" ? "#c2410c" : "#0f172a") : "#f1f5f9",
+      color: filtroEstado === f ? "#fff" : "#64748b" }}>
+    {f === "all" ? "Todas" : f === "en_proceso" ? "🚚 En proceso" : f === "pendiente" ? "⏳ Pendientes" : f === "pagado" ? "✅ Cobradas" : "🔴 Vencidas"}
+  </button>
+))}
       </div>
 
       {/* VISTA CALENDARIO */}

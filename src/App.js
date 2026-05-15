@@ -2377,20 +2377,22 @@ async function guardarOC(editando = false) {
     setSaving(false);
   }
 
-  function abrirEditar(oc) {
-    setForm({
-      cliente_id: oc.cliente_id,
-      numero_oc: oc.numero_oc,
-      descripcion: oc.descripcion || "",
-      fecha_facturacion: oc.fecha_facturacion || "",
-      monto_total: oc.monto_total || "",
-      fecha_vencimiento: oc.fecha_vencimiento || "",
-      fecha_pago_esperado: oc.fecha_pago_esperado || "",
-      fecha_pago_real: oc.fecha_pago_real || "",
-      notas: oc.notas || "",
-    });
-    setModalEditar(oc);
-  }
+ function abrirEditar(oc) {
+  setForm({
+    cliente_id: oc.cliente_id,
+    numero_oc: oc.numero_oc,
+    descripcion: oc.descripcion || "",
+    fecha_facturacion: oc.fecha_facturacion || "",
+    monto_total: oc.monto_total || "",
+    fecha_vencimiento: oc.fecha_vencimiento || "",
+    fecha_pago_esperado: oc.fecha_pago_esperado || "",
+    fecha_pago_real: oc.fecha_pago_real || "",
+    notas: oc.notas || "",
+  });
+  setDocFile(null);
+  setDocPreview(oc.documento_url || null);
+  setModalEditar(oc);
+}
 
   // KPIs
   const filtradas = ordenes.filter(o => {

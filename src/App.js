@@ -2403,10 +2403,10 @@ async function guardarOC(editando = false) {
     return okCliente && okEstado;
   });
 
-  const pagadas = ordenes.filter(o => getEstadoReal(o) === "pagado");
-  const pendientes = ordenes.filter(o => getEstadoReal(o) === "pendiente");
-  const vencidas = ordenes.filter(o => getEstadoReal(o) === "vencido");
-  const sum = arr => arr.reduce((a, b) => a + parseFloat(b.monto_total || 0), 0);
+const pagadas = ordenes.filter(o => getEstadoReal(o) === "pagado");
+const pendientes = ordenes.filter(o => getEstadoReal(o) === "pendiente");
+const vencidas = ordenes.filter(o => getEstadoReal(o) === "vencido");
+const enProceso = ordenes.filter(o => getEstadoReal(o) === "en_proceso");
 
   // Eventos para calendario
   const eventosCalendario = ordenes.flatMap(oc => {

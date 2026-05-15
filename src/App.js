@@ -2233,11 +2233,12 @@ function AdminOCxCobrar() {
     setLoading(false);
   }
 
-  function getEstadoReal(oc) {
-    if (oc.fecha_pago_real) return "pagado";
-    if (oc.fecha_vencimiento && new Date(oc.fecha_vencimiento) < new Date()) return "vencido";
-    return "pendiente";
-  }
+ function getEstadoReal(oc) {
+  if (oc.fecha_pago_real) return "pagado";
+  if (!oc.fecha_facturacion) return "en_proceso";
+  if (oc.fecha_vencimiento && new Date(oc.fecha_vencimiento) < new Date()) return "vencido";
+  return "pendiente";
+}
 
   function autoVencimiento(fechaFacturacion, plazo) {
     if (!fechaFacturacion || !plazo) return "";

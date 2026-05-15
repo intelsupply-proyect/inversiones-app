@@ -2451,9 +2451,10 @@ const enProceso = ordenes.filter(o => getEstadoReal(o) === "en_proceso");
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12, marginBottom: 24 }}>
         {[
           { label: "Cobradas", val: pagadas.length + " OC", sub: fmt(sum(pagadas)), color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
+          { label: "🚚 En proceso", val: enProceso.length + " OC", sub: fmt(sum(enProceso)), color: "#c2410c", bg: "#fff7ed", border: "#fed7aa" },
           { label: "Pendientes", val: pendientes.length + " OC", sub: fmt(sum(pendientes)), color: "#854d0e", bg: "#fef9c3", border: "#fde68a" },
           { label: "Vencidas", val: vencidas.length + " OC", sub: fmt(sum(vencidas)), color: "#991b1b", bg: "#fee2e2", border: "#fecaca" },
-          { label: "Por cobrar", val: (pendientes.length + vencidas.length) + " OC", sub: fmt(sum([...pendientes, ...vencidas])), color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe" },
+          { label: "Por cobrar", val: (pendientes.length + vencidas.length + enProceso.length) + " OC", sub: fmt(sum([...pendientes, ...vencidas, ...enProceso])), color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe" },
         ].map(k => (
           <div key={k.label} style={{ background: k.bg, borderRadius: 14, padding: "16px 18px", border: `1.5px solid ${k.border}` }}>
             <div style={{ fontSize: 11, color: "#64748b", textTransform: "uppercase", fontWeight: 600, marginBottom: 4 }}>{k.label}</div>

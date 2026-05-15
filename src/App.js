@@ -2500,7 +2500,7 @@ const enProceso = ordenes.filter(o => getEstadoReal(o) === "en_proceso");
                 const est = getEstadoReal(oc);
                 const s = estadoStyle[est];
                 return (
-                  <tr key={oc.id} style={{ borderTop: "1px solid #f1f5f9", background: i % 2 === 0 ? "#fff" : "#fafbfc" }}>
+                  <tr key={oc.id} style={{ borderTop: "1px solid #f1f5f9", background: est === "en_proceso" ? "#fff7ed" : i % 2 === 0 ? "#fff" : "#fafbfc", borderLeft: est === "en_proceso" ? "3px solid #f97316" : "none" }}>
                     <td style={{ padding: "11px 14px", fontWeight: 600, fontSize: 12 }}>{oc.clientes_oc?.nombre}</td>
                     <td style={{ padding: "11px 14px", fontFamily: "monospace", fontSize: 11, color: "#64748b" }}>{oc.numero_oc}</td>
                     <td style={{ padding: "11px 14px", color: "#374151", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{oc.descripcion || "—"}</td>

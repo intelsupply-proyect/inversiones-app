@@ -2429,7 +2429,7 @@ const enProceso = ordenes.filter(o => getEstadoReal(o) === "en_proceso");
   pagado:    { bg: "#dcfce7", color: "#15803d", label: "✅ Cobrada" },
   pendiente: { bg: "#fef9c3", color: "#854d0e", label: "⏳ Pendiente" },
   vencido:   { bg: "#fee2e2", color: "#991b1b", label: "🔴 Vencida" },
-  en_proceso:{ bg: "#fff7ed", color: "#c2410c", label: "🚚 En proceso", border: "#fed7aa", pulse: true },
+  en_proceso:{ bg: "#fff7ed", color: "#c2410c", label: "🚚 En proceso" },
 };
   if (loading) return <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>Cargando...</div>;
 

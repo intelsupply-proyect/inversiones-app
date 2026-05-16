@@ -167,7 +167,7 @@ function AdminDashboard({ onReload }) {
   const [ordenesActivas, setOrdenesActivas] = useState([]);
   const [participacionesPorOrden, setParticipacionesPorOrden] = useState({});
   const [loading, setLoading] = useState(true);
-
+  const { isMobile } = useResponsive();
   useEffect(() => { loadData(); }, [onReload]);
 
   async function loadData() {
@@ -212,7 +212,7 @@ function AdminDashboard({ onReload }) {
     <div>
       <div style={{ fontWeight: 800, fontSize: 22, color: "#0f172a", marginBottom: 24, letterSpacing: "-0.03em" }}>Dashboard General</div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 16, marginBottom: 32 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fit,minmax(200px,1fr))", gap: isMobile ? 10 : 16, marginBottom: 32 }}>
         {[
           { label: "Capital total gestionado", val: fmt(stats.capital), icon: "💰", color: "#2563eb", bg: "#eff6ff" },
           { label: "Capital invertido activo", val: fmt(stats.invertido), icon: "📈", color: "#7c3aed", bg: "#f5f3ff" },

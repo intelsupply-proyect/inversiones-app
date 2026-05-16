@@ -18,7 +18,25 @@ function daysLeft(endDate) {
   const diff = new Date(endDate) - new Date();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
+function useWindowSize() {
+  const [size, setSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  useEffect(() => {
+    const handler = () => setSize({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return size;
+}
 
+function useResponsive() {
+  const { width } = useWindowSize();
+  return {
+    isMobile: width < 768,
+    isTablet: width >= 768 && width < 1024,
+    isDesktop: width >= 1024,
+    width,
+  };
+}
 function Btn({ children, variant = "primary", ...props }) {
   const variants = {
     primary:   { background: "#2563eb", color: "#fff", boxShadow: "0 2px 8px rgba(37,99,235,0.25)" },

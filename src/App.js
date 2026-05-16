@@ -2505,61 +2505,112 @@ const sum = arr => arr.reduce((a, b) => a + parseFloat(b.monto_total || 0), 0);
         <Calendario eventos={eventosCalendario} titulo="OC x Cobrar" />
       ) : (
         /* VISTA LISTA */
-        <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: "#f8fafc" }}>
-               {["Cliente", "N° OC", "Descripción", "Monto", "Facturación", "Vencimiento", "Pago Esp.", "Estado", "Doc", ""].map(h => (
-                  <th key={h} style={{ padding: "11px 14px", textAlign: "left", fontWeight: 600, color: "#64748b", fontSize: 11 }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtradas.map((oc, i) => {
-                const est = getEstadoReal(oc);
-                const s = estadoStyle[est];
-                return (
-                  <tr key={oc.id} style={{ borderTop: "1px solid #f1f5f9", background: est === "en_proceso" ? "#fff7ed" : i % 2 === 0 ? "#fff" : "#fafbfc", borderLeft: est === "en_proceso" ? "3px solid #f97316" : "none" }}>
-                    <td style={{ padding: "11px 14px", fontWeight: 600, fontSize: 12 }}>{oc.clientes_oc?.nombre}</td>
-                    <td style={{ padding: "11px 14px", fontFamily: "monospace", fontSize: 11, color: "#64748b" }}>{oc.numero_oc}</td>
-                    <td style={{ padding: "11px 14px", color: "#374151", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{oc.descripcion || "—"}</td>
-                    <td style={{ padding: "11px 14px", fontWeight: 700 }}>{fmt(oc.monto_total)}</td>
-                    <td style={{ padding: "11px 14px", color: "#64748b" }}>{fmtDate(oc.fecha_facturacion)}</td>
-                    <td style={{ padding: "11px 14px", color: est === "vencido" ? "#dc2626" : "#64748b", fontWeight: est === "vencido" ? 700 : 400 }}>{fmtDate(oc.fecha_vencimiento)}</td>
-                    <td style={{ padding: "11px 14px", color: "#64748b" }}>{fmtDate(oc.fecha_pago_esperado)}</td>
-                    <td style={{ padding: "11px 14px" }}>
-                      <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>{s.label}</span>
-                    </td>
-                  <td style={{ padding: "11px 14px" }}>
-  {oc.documento_url
-    ? <a href={oc.documento_url} target="_blank" rel="noreferrer">
-        <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }}>📎 Ver</Btn>
-      </a>
-    : <span style={{ fontSize: 11, color: "#cbd5e1" }}>—</span>
-  }
-</td>
-<td style={{ padding: "11px 14px" }}>
-  <div style={{ display: "flex", gap: 6 }}>
-    {est !== "pagado" && (
-      <Btn variant="success" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>
-        💰 Cobrar
-      </Btn>
-    )}
-    <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️</Btn>
-    <Btn variant="danger" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
-  </div>
-</td>
-                  </tr>
-                );
-              })}
-              {filtradas.length === 0 && (
-                <tr><td colSpan={10} style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>No hay OC registradas</td></tr>
-              )}
-            </tbody>
-          </table>
+        {/* VISTA LISTA */}
+{isMobile ? (
+  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    {filtradas.map(oc => {
+      const est = getEstadoReal(oc);
+      const s = estadoStyle[est];
+      return (
+        <div key={oc.id} style={{ background: "#fff", borderRadius: 14, padding: 14, border: "1.5px solid #e2e8f0", borderLeft: est === "en_proceso" ? "4px solid #f97316" : est === "vencido" ? "4px solid #ef4444" : "1.5px solid #e2e8f0" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "#0f172a" }}>{oc.clientes_oc?.nombre}</div>
+              <div style={{ fontSize: 11, color: "#64748b", fontFamily: "monospace", marginTop: 2 }}>{oc.numero_oc}</div>
+            </div>
+            <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>{s.label}</span>
+          </div>
+          {oc.descripcion && <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>{oc.descripcion}</div>}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+            <div style={{ background: "#f8fafc", borderRadius: 8, padding: "8px 10px" }}>
+              <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 2 }}>MONTO</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{fmt(oc.monto_total)}</div>
+            </div>
+            <div style={{ background: "#f8fafc", borderRadius: 8, padding: "8px 10px" }}>
+              <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 2 }}>FACTURACIÓN</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{fmtDate(oc.fecha_facturacion)}</div>
+            </div>
+            <div style={{ background: "#f8fafc", borderRadius: 8, padding: "8px 10px" }}>
+              <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 2 }}>VENCIMIENTO</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: est === "vencido" ? "#dc2626" : "#0f172a" }}>{fmtDate(oc.fecha_vencimiento)}</div>
+            </div>
+            <div style={{ background: "#f8fafc", borderRadius: 8, padding: "8px 10px" }}>
+              <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 2 }}>PAGO ESP.</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{fmtDate(oc.fecha_pago_esperado)}</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {oc.documento_url && (
+              <a href={oc.documento_url} target="_blank" rel="noreferrer">
+                <Btn variant="info" style={{ padding: "5px 10px", fontSize: 11 }}>📎 Ver doc</Btn>
+              </a>
+            )}
+            {est !== "pagado" && (
+              <Btn variant="success" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>💰 Cobrar</Btn>
+            )}
+            <Btn variant="info" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️ Editar</Btn>
+            <Btn variant="danger" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
+          </div>
         </div>
-      )}
-
+      );
+    })}
+    {filtradas.length === 0 && (
+      <div style={{ padding: 40, textAlign: "center", color: "#94a3b8", background: "#fff", borderRadius: 16 }}>No hay OC registradas</div>
+    )}
+  </div>
+) : (
+  <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
+    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+      <thead>
+        <tr style={{ background: "#f8fafc" }}>
+          {["Cliente", "N° OC", "Descripción", "Monto", "Facturación", "Vencimiento", "Pago Esp.", "Estado", "Doc", ""].map(h => (
+            <th key={h} style={{ padding: "11px 14px", textAlign: "left", fontWeight: 600, color: "#64748b", fontSize: 11 }}>{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {filtradas.map((oc, i) => {
+          const est = getEstadoReal(oc);
+          const s = estadoStyle[est];
+          return (
+            <tr key={oc.id} style={{ borderTop: "1px solid #f1f5f9", background: est === "en_proceso" ? "#fff7ed" : i % 2 === 0 ? "#fff" : "#fafbfc", borderLeft: est === "en_proceso" ? "3px solid #f97316" : "none" }}>
+              <td style={{ padding: "11px 14px", fontWeight: 600, fontSize: 12 }}>{oc.clientes_oc?.nombre}</td>
+              <td style={{ padding: "11px 14px", fontFamily: "monospace", fontSize: 11, color: "#64748b" }}>{oc.numero_oc}</td>
+              <td style={{ padding: "11px 14px", color: "#374151", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{oc.descripcion || "—"}</td>
+              <td style={{ padding: "11px 14px", fontWeight: 700 }}>{fmt(oc.monto_total)}</td>
+              <td style={{ padding: "11px 14px", color: "#64748b" }}>{fmtDate(oc.fecha_facturacion)}</td>
+              <td style={{ padding: "11px 14px", color: est === "vencido" ? "#dc2626" : "#64748b", fontWeight: est === "vencido" ? 700 : 400 }}>{fmtDate(oc.fecha_vencimiento)}</td>
+              <td style={{ padding: "11px 14px", color: "#64748b" }}>{fmtDate(oc.fecha_pago_esperado)}</td>
+              <td style={{ padding: "11px 14px" }}>
+                <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>{s.label}</span>
+              </td>
+              <td style={{ padding: "11px 14px" }}>
+                {oc.documento_url
+                  ? <a href={oc.documento_url} target="_blank" rel="noreferrer">
+                      <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }}>📎 Ver</Btn>
+                    </a>
+                  : <span style={{ fontSize: 11, color: "#cbd5e1" }}>—</span>
+                }
+              </td>
+              <td style={{ padding: "11px 14px" }}>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {est !== "pagado" && (
+                    <Btn variant="success" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>💰 Cobrar</Btn>
+                  )}
+                  <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️</Btn>
+                  <Btn variant="danger" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
+                </div>
+              </td>
+            </tr>
+          );
+        })}
+        {filtradas.length === 0 && (
+          <tr><td colSpan={10} style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>No hay OC registradas</td></tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+)}
       {/* MODAL NUEVA OC */}
      {modalNueva && <FormOC titulo="Nueva OC por cobrar" form={form} setForm={setForm} clientes={clientes} saving={saving} docFile={docFile} setDocFile={setDocFile} docPreview={docPreview} setDocPreview={setDocPreview} analizando={analizando} onAnalizar={analizarDocumento} onGuardar={() => guardarOC(false)} onCerrar={() => { setModalNueva(false); setDocFile(null); setDocPreview(null); }} />}
 

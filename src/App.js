@@ -2504,7 +2504,6 @@ const sum = arr => arr.reduce((a, b) => a + parseFloat(b.monto_total || 0), 0);
       {vistaCalendario ? (
         <Calendario eventos={eventosCalendario} titulo="OC x Cobrar" />
       ) : (
-        /* VISTA LISTA */
         {/* VISTA LISTA */}
 {isMobile ? (
   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

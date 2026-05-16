@@ -2501,10 +2501,11 @@ const sum = arr => arr.reduce((a, b) => a + parseFloat(b.monto_total || 0), 0);
       </div>
 
       {/* VISTA CALENDARIO */}
-      {vistaCalendario ? (
-        <Calendario eventos={eventosCalendario} titulo="OC x Cobrar" />
-      ) : (
-        {/* VISTA LISTA */}
+     {vistaCalendario ? (
+  <Calendario eventos={eventosCalendario} titulo="OC x Cobrar" />
+) : (
+<>
+{/* VISTA LISTA */}
 {isMobile ? (
   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
     {filtradas.map(oc => {

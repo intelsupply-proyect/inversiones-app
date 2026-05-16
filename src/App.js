@@ -2238,7 +2238,7 @@ function AdminOCxCobrar() {
   const [docFile, setDocFile] = useState(null);
   const [docPreview, setDocPreview] = useState(null);
   const [analizando, setAnalizando] = useState(false);
-
+  const { isMobile } = useResponsive();
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {

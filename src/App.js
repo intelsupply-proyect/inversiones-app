@@ -1810,8 +1810,8 @@ function Nav({ perfil, tab, setTab, tabs, onLogout, accentColor }) {
           </div>
 
           {/* HAMBURGUESA */}
-          <button onClick={() => setMenuAbierto(p => !p)}
-            style={{ border: "none", background: menuAbierto ? "#f1f5f9" : "transparent", borderRadius: 8, cursor: "pointer", padding: "6px 8px", fontSize: 18, color: "#64748b", marginLeft: 8, display: "flex", alignItems: "center" }}>
+           <button onClick={() => setMenuAbierto(p => !p)}
+             style={{ border: "none", background: menuAbierto ? "#f1f5f9" : "transparent", borderRadius: 8, cursor: "pointer", padding: "6px 8px", fontSize: 18, color: "#64748b", marginLeft: 8, display: isMobile || isTablet ? "flex" : "flex", alignItems: "center" }}>
             {menuAbierto ? "✕" : "☰"}
           </button>
         </div>

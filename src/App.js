@@ -1742,6 +1742,7 @@ function PortalMovimientos({ profileId }) {
 // ─── NAV / SIDEBAR ───────────────────────────────────────────────────────────
 function Nav({ perfil, tab, setTab, tabs, onLogout, accentColor }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const { isMobile, isTablet } = useResponsive();
 
   function handleTab(id) {
     setTab(id);

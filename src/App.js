@@ -1785,7 +1785,7 @@ function Nav({ perfil, tab, setTab, tabs, onLogout, accentColor }) {
           </div>
 
           {/* TABS DESKTOP */}
-          <div style={{ display: "flex", gap: 2, marginRight: 16 }}>
+          <div style={{ display: isMobile ? "none" : "flex", gap: 2, marginRight: 16 }}>
             {tabs.map(t => (
               <button key={t.id} onClick={() => handleTab(t.id)}
                 style={{ border: "none", background: tab === t.id ? "#eff6ff" : "transparent",

@@ -2605,11 +2605,13 @@ const sum = arr => arr.reduce((a, b) => a + parseFloat(b.monto_total || 0), 0);
           );
         })}
         {filtradas.length === 0 && (
-          <tr><td colSpan={10} style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>No hay OC registradas</td></tr>
-        )}
-      </tbody>
-    </table>
-  </div>
+  <tr><td colSpan={10} style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>No hay OC registradas</td></tr>
+)}
+</tbody>
+</table>
+</div>
+)}
+</>
 )}
       {/* MODAL NUEVA OC */}
      {modalNueva && <FormOC titulo="Nueva OC por cobrar" form={form} setForm={setForm} clientes={clientes} saving={saving} docFile={docFile} setDocFile={setDocFile} docPreview={docPreview} setDocPreview={setDocPreview} analizando={analizando} onAnalizar={analizarDocumento} onGuardar={() => guardarOC(false)} onCerrar={() => { setModalNueva(false); setDocFile(null); setDocPreview(null); }} />}

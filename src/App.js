@@ -2307,6 +2307,12 @@ function AdminOCxCobrar() {
   const [docFile, setDocFile] = useState(null);
   const [docPreview, setDocPreview] = useState(null);
   const [analizando, setAnalizando] = useState(false);
+  const [modalCrearOrden, setModalCrearOrden] = useState(null);
+  const [formOrden, setFormOrden] = useState({ title: "", target_company: "", description: "", required_amount: "", interest_rate: "", term_months: "", minimum_amount: "" });
+  const [imgOrden, setImgOrden] = useState(null);
+  const [imgOrdenPreview, setImgOrdenPreview] = useState(null);
+  const [savingOrden, setSavingOrden] = useState(false);
+  const imgOrdenRef = useRef(null);
   const { isMobile } = useResponsive();
   useEffect(() => { loadData(); }, []);
 

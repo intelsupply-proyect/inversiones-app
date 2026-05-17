@@ -868,13 +868,14 @@ function ModalDetalleInversor({ inv, onClose }) {
   setSavingAjuste(true);
   const diff = parseFloat(ajuste.balance) - parseFloat(inv.available_balance);
   await supabase.from("profiles").update({ available_balance: parseFloat(ajuste.balance) }).eq("id", inv.investor_id);
-  await supabase.from("capital_movements").insert({
-    investor_id: inv.investor_id,
-    amount: diff,
-    type: "admin_adjustment",
-    description: `Ajuste manual: ${ajuste.motivo}`,
-    balance_after: parseFloat(ajuste.balance),
-  });
+ await supabase.from("capital_movements").insert({
+  investor_id: inv.investor_id,
+  amount: diff,
+  type: "admin_adjustment",
+  description: `Ajuste manual: ${ajuste.motivo}`,
+  balance_before: parseFloat(inv.available_balance),
+  balance_after: parseFloat(ajuste.balance),
+});
   setModalAjuste(false);
   setSavingAjuste(false);
   loadData();

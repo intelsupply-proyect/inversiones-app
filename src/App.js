@@ -219,8 +219,8 @@ function AdminDashboard({ onReload }) {
           { label: "Ganancias pagadas", val: fmt(stats.ganancias), icon: "✅", color: "#16a34a", bg: "#f0fdf4" },
           { label: "Órdenes activas", val: stats.ordenes, icon: "📋", color: "#f59e0b", bg: "#fffbeb" },
         ].map(k => (
-          <div key={k.label} style={{ background: "#fff", borderRadius: 16, padding: "22px", border: "1.5px solid #e2e8f0", boxShadow: "0 2px 12px rgba(0,0,0,0.05)", display: "flex", gap: 16, alignItems: "center" }}>
-            <div style={{ width: 52, height: 52, borderRadius: 14, background: k.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{k.icon}</div>
+          <div key={k.label} style={{ background: "#fff", borderRadius: 16, padding: isMobile ? "14px" : "22px", border: "1.5px solid #e2e8f0", boxShadow: "0 2px 12px rgba(0,0,0,0.05)", display: "flex", gap: isMobile ? 8 : 16, alignItems: "center" }}>
+             <div style={{ width: isMobile ? 36 : 52, height: isMobile ? 36 : 52, borderRadius: 14, background: k.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 18 : 24, flexShrink: 0 }}>{k.icon}</div>
             <div>
               <div style={{ fontSize: 24, fontWeight: 800, color: k.color, letterSpacing: "-0.5px", lineHeight: 1 }}>{k.val}</div>
               <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 5, fontWeight: 500 }}>{k.label}</div>

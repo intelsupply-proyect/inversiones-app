@@ -2609,17 +2609,18 @@ const sum = arr => arr.reduce((a, b) => a + parseFloat(b.monto_total || 0), 0);
             </div>
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {oc.documento_url && (
-              <a href={oc.documento_url} target="_blank" rel="noreferrer">
-                <Btn variant="info" style={{ padding: "5px 10px", fontSize: 11 }}>📎 Ver doc</Btn>
-              </a>
-            )}
-            {est !== "pagado" && (
-              <Btn variant="success" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>💰 Cobrar</Btn>
-            )}
-            <Btn variant="info" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️ Editar</Btn>
-            <Btn variant="danger" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
-          </div>
+  {oc.documento_url && (
+    <a href={oc.documento_url} target="_blank" rel="noreferrer">
+      <Btn variant="info" style={{ padding: "5px 10px", fontSize: 11 }}>📎 Ver doc</Btn>
+    </a>
+  )}
+  {est !== "pagado" && (
+    <Btn variant="success" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>💰 Cobrar</Btn>
+  )}
+  <Btn variant="info" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️ Editar</Btn>
+  <Btn variant="purple" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => abrirCrearOrden(oc)}>📋 Crear orden</Btn>
+  <Btn variant="danger" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
+</div>
         </div>
       );
     })}

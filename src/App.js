@@ -1929,7 +1929,7 @@ function Calendario({ eventos, titulo }) {
               }}>{dia}</div>
               {eventos.map((e, j) => (
                 <div key={j} title={e.label} style={{
-                  fontSize: 9, fontWeight: 600, borderRadius: 4, padding: "1px 4px", marginBottom: 1,
+                  fontSize: isMobile ? 7 : 9, fontWeight: 600, borderRadius: 4, padding: "1px 3px", marginBottom: 1,
                   background: e.pagado ? "#dcfce7" : tieneAlerta ? "#fee2e2" : "#dbeafe",
                   color: e.pagado ? "#15803d" : tieneAlerta ? "#991b1b" : "#1d4ed8",
                   whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"

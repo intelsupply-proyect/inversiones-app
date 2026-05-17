@@ -644,6 +644,16 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
         {ordenActual.status === "draft" && <Btn onClick={() => onCambiarEstado(ordenActual, "open")} style={{ flex: 1 }}>Publicar orden</Btn>}
         {ordenActual.status === "funded" && <Btn variant="success" onClick={() => onActivar(ordenActual)} style={{ flex: 1 }}>✅ Activar orden</Btn>}
         {ordenActual.status === "active" && <Btn variant="danger" onClick={cerrarOrdenAnticipado} style={{ flex: 1 }}>Cerrar anticipadamente</Btn>}
+        {["draft", "open"].includes(ordenActual.status) && (
+  <Btn variant="danger" onClick={async () => {
+    if (!window.confirm(`⚠️ ¿Estás seguro que deseas ELIMINAR la orden "${ordenActual.title}"?\n\nEsta acción no se puede deshacer.`)) return;
+    const confirmacion = window.prompt(`Para confirmar escribe el código de la orden: ${ordenActual.code}`);
+    if (confirmacion !== ordenActual.code) { alert("Código incorrecto. Orden NO eliminada."); return; }
+    await supabase.from("investment_orders").delete().eq("id", ordenActual.id);
+    onClose();
+    onReload();
+  }} style={{ flex: 1 }}>🗑️ Eliminar orden</Btn>
+)}
       </div>
 
       <div style={{ fontWeight: 700, fontSize: 14, color: "#0f172a", marginBottom: 12 }}>Participaciones ({participaciones.length})</div>

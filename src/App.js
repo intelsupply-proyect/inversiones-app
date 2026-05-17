@@ -863,6 +863,22 @@ function ModalDetalleInversor({ inv, onClose }) {
     setLoading(false);
   }
 
+  async function guardarAjuste() {
+  if (!ajuste.motivo) return;
+  setSavingAjuste(true);
+  const diff = parseFloat(ajuste.balance) - parseFloat(inv.available_balance);
+  await supabase.from("profiles").update({ available_balance: parseFloat(ajuste.balance) }).eq("id", inv.investor_id);
+  await supabase.from("capital_movements").insert({
+    investor_id: inv.investor_id,
+    amount: diff,
+    type: "admin_adjustment",
+    description: `Ajuste manual: ${ajuste.motivo}`,
+    balance_after: parseFloat(ajuste.balance),
+  });
+  setModalAjuste(false);
+  setSavingAjuste(false);
+  loadData();
+}
 async function guardarBanco() {
   setSavingBanco(true);
   await supabase.from("profiles").update({ banco, cuenta_bancaria: cuenta, phone }).eq("id", inv.investor_id);

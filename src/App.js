@@ -898,18 +898,21 @@ function handleCompFile(e) {
   return (
     <Modal open={true} onClose={onClose} title={inv.full_name} maxWidth={720}>
       {/* MÉTRICAS */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 16 }}>
-        {[
-          { label: "Balance disponible", val: fmt(inv.available_balance), color: "#7c3aed" },
-          { label: "Capital invertido", val: fmt(inv.total_invested), color: "#0ea5e9" },
-          { label: "Ganancias totales", val: fmt(inv.total_earnings), color: "#16a34a" },
-        ].map(m => (
-          <div key={m.label} style={{ background: "#f8fafc", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
-            <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 4, textTransform: "uppercase" }}>{m.label}</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: m.color }}>{m.val}</div>
-          </div>
-        ))}
-      </div>
+     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 8 }}>
+  {[
+    { label: "Balance disponible", val: fmt(inv.available_balance), color: "#7c3aed" },
+    { label: "Capital invertido", val: fmt(inv.total_invested), color: "#0ea5e9" },
+    { label: "Ganancias totales", val: fmt(inv.total_earnings), color: "#16a34a" },
+  ].map(m => (
+    <div key={m.label} style={{ background: "#f8fafc", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
+      <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 4, textTransform: "uppercase" }}>{m.label}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: m.color }}>{m.val}</div>
+    </div>
+  ))}
+</div>
+<div style={{ marginBottom: 16, textAlign: "right" }}>
+  <Btn variant="warning" style={{ fontSize: 11, padding: "5px 12px" }} onClick={() => setModalAjuste(true)}>⚙️ Ajustar balance</Btn>
+</div>
 
       {/* CUENTA BANCARIA */}
       <div style={{ background: "#f8fafc", borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>

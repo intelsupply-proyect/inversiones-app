@@ -1935,7 +1935,7 @@ function Calendario({ eventos, titulo }) {
                   color: e.pagado ? "#15803d" : tieneAlerta ? "#991b1b" : "#1d4ed8",
                   whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"
                 }}>
-                  {e.icono} {e.label}
+                  {e.icono} {isMobile ? e.label.substring(0, 8) + "..." : e.label}
                 </div>
               ))}
             </div>

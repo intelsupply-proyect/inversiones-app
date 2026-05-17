@@ -903,6 +903,7 @@ async function guardarBanco() {
           <div>
             <Input label="Banco" value={banco} onChange={e => setBanco(e.target.value)} placeholder="Ej: Banco General" />
             <Input label="Número de cuenta" value={cuenta} onChange={e => setCuenta(e.target.value)} placeholder="Ej: 04-12-345678-9" />
+            <Input label="WhatsApp (con código de país)" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Ej: +50769123456" />
             <Btn onClick={guardarBanco} disabled={savingBanco} style={{ width: "100%" }}>{savingBanco ? "Guardando..." : "Guardar"}</Btn>
           </div>
         ) : (

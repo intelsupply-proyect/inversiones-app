@@ -2367,6 +2367,7 @@ async function guardarOrdenDesdeOC() {
     minimum_amount: parseFloat(formOrden.minimum_amount || 0),
     status: "draft",
     code: `OC-${Date.now()}`,
+    created_by: profileId,
     imagen_url,
   });
   if (error) { alert("Error: " + error.message); setSavingOrden(false); return; }

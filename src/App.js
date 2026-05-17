@@ -1580,15 +1580,18 @@ function PortalOportunidades({ profileId }) {
           {ordenes.map(o => (
             <div key={o.id} style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e2e8f0" }}>
               {/* IMAGEN */}
-              {o.imagen_url
-                ? <img src={o.imagen_url} alt={o.title} style={{ width: "100%", height: 160, objectFit: "cover" }} />
-                : <div style={{ width: "100%", height: 120, background: "linear-gradient(135deg,#0f172a,#1e3a5f)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 32, marginBottom: 4 }}>📈</div>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{o.target_company}</div>
-                    </div>
-                  </div>
-              }
+             <div style={{ width: "100%", height: 120, background: "linear-gradient(135deg,#0f172a,#1e3a5f)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+  <div style={{ textAlign: "center" }}>
+    <div style={{ fontSize: 32, marginBottom: 4 }}>📈</div>
+    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{o.target_company}</div>
+  </div>
+  {o.imagen_url && (
+    <a href={o.imagen_url} target="_blank" rel="noreferrer"
+      style={{ position: "absolute", bottom: 10, right: 10, background: "rgba(255,255,255,0.15)", backdropFilter: "blur(4px)", color: "#fff", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 600, textDecoration: "none", border: "1px solid rgba(255,255,255,0.2)" }}>
+      📎 Ver documento
+    </a>
+  )}
+</div>
               <div style={{ padding: 20 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                   <div>

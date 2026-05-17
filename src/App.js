@@ -1860,6 +1860,7 @@ function Calendario({ eventos, titulo }) {
   const hoy = new Date();
   const [mesActual, setMesActual] = useState(hoy.getMonth());
   const [anioActual, setAnioActual] = useState(hoy.getFullYear());
+  const { isMobile } = useResponsive();
 
   const mesesNombre = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
   const diasSemana = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];

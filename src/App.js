@@ -839,11 +839,12 @@ function ModalDetalleInversor({ inv, onClose }) {
     setLoading(false);
   }
 
-  async function guardarBanco() {
-    setSavingBanco(true);
-    await supabase.from("profiles").update({ banco, cuenta_bancaria: cuenta }).eq("id", inv.investor_id);
-    setEditBanco(false);
-    setSavingBanco(false);
+async function guardarBanco() {
+  setSavingBanco(true);
+  await supabase.from("profiles").update({ banco, cuenta_bancaria: cuenta, phone }).eq("id", inv.investor_id);
+  setEditBanco(false);
+  setSavingBanco(false);
+}
   }
 
   function handleCompFile(e) {

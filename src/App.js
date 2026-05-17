@@ -2823,7 +2823,7 @@ function AdminView({ perfil, onLogout }) {
         {tab === "pagos" && <AdminPagosMensuales />}
         {tab === "calendario" && <AdminCalendario />}
         {tab === "vencimientos" && <AdminVencimientos />}
-        {tab === "oc_cobrar" && <AdminOCxCobrar />}
+        {tab === "oc_cobrar" && <AdminOCxCobrar profileId={perfil.id} />}
       </div>
     </div>
   );

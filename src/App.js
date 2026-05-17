@@ -1051,6 +1051,17 @@ function handleCompFile(e) {
           )}
         </>
       )}
+<Modal open={modalAjuste} onClose={() => setModalAjuste(false)} title="Ajustar balance" maxWidth={400}>
+  <div style={{ background: "#fff7ed", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#c2410c" }}>
+    ⚠️ Esto modifica el balance directamente. Úsalo solo para corregir errores.
+  </div>
+  <Input label="Balance correcto ($)" type="number" value={ajuste.balance} onChange={e => setAjuste(p => ({ ...p, balance: e.target.value }))} />
+  <Input label="Motivo del ajuste *" value={ajuste.motivo} onChange={e => setAjuste(p => ({ ...p, motivo: e.target.value }))} placeholder="Ej: Corrección de depósito duplicado" />
+  <div style={{ display: "flex", gap: 8 }}>
+    <Btn variant="secondary" onClick={() => setModalAjuste(false)} style={{ flex: 1 }}>Cancelar</Btn>
+    <Btn variant="warning" onClick={guardarAjuste} disabled={savingAjuste || !ajuste.motivo} style={{ flex: 1 }}>{savingAjuste ? "Guardando..." : "Aplicar ajuste"}</Btn>
+  </div>
+</Modal>
 
       {/* MODAL SUBIR COMPROBANTE */}
       {modalComprobante && (

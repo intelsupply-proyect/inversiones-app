@@ -775,10 +775,13 @@ function AdminInversionistas() {
                   {inv.cuenta_bancaria && <strong>****{inv.cuenta_bancaria.slice(-4)}</strong>}
                 </div>
               )}
-              <div style={{ display: "flex", gap: 8 }}>
-                <Btn variant="info" style={{ flex: 1, fontSize: 12 }} onClick={() => setModalDetalle(inv)}>Ver detalle</Btn>
-                <Btn variant="success" style={{ flex: 1, fontSize: 12 }} onClick={() => { setModalDeposito(inv); setDeposito({ monto: "", descripcion: "" }); }}>+ Depósito</Btn>
-              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Btn variant="info" style={{ flex: 1, fontSize: 12 }} onClick={() => setModalDetalle(inv)}>Ver detalle</Btn>
+              <Btn variant="success" style={{ flex: 1, fontSize: 12 }} onClick={() => { setModalDeposito(inv); setDeposito({ monto: "", descripcion: "" }); }}>+ Depósito</Btn>
+               {inv.phone && (
+              <Btn variant="secondary" style={{ flex: 1, fontSize: 12 }} onClick={() => { setMensajeNotif(`Hola ${inv.full_name}, te informamos que hay una nueva oportunidad de inversión disponible en InvestAdmin. ¡Ingresa a la plataforma para conocer los detalles y participar!`); setModalNotif(inv); }}>📲 Notificar</Btn>
+  )}
+</div>
             </div>
           ))}
           {inversores.length === 0 && (
@@ -803,6 +806,22 @@ function AdminInversionistas() {
           <Btn variant="secondary" onClick={() => setModalDeposito(null)} style={{ flex: 1 }}>Cancelar</Btn>
           <Btn variant="danger" onClick={() => registrarDeposito("withdrawal")} disabled={saving} style={{ flex: 1 }}>↓ Retiro</Btn>
           <Btn variant="success" onClick={() => registrarDeposito("deposit")} disabled={saving} style={{ flex: 1 }}>↑ Depósito</Btn>
+        </div>
+    </Modal>
+
+      <Modal open={!!modalNotif} onClose={() => { setModalNotif(null); setMensajeNotif(""); }} title={`Notificar a ${modalNotif?.full_name}`} maxWidth={460}>
+        <div style={{ background: "#f0fdf4", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#15803d" }}>
+          📲 Se abrirá WhatsApp con el mensaje listo. Tú decides cuándo enviarlo.
+        </div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" }}>Mensaje</div>
+          <textarea value={mensajeNotif} onChange={e => setMensajeNotif(e.target.value)} rows={6} style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #e2e8f0", fontSize: 13, outline: "none", color: "#0f172a", background: "#fff", boxSizing: "border-box", resize: "vertical" }} />
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Btn variant="secondary" onClick={() => { setModalNotif(null); setMensajeNotif(""); }} style={{ flex: 1 }}>Cancelar</Btn>
+          <a href={`https://wa.me/${modalNotif?.phone?.replace(/\D/g,'')}?text=${encodeURIComponent(mensajeNotif)}`} target="_blank" rel="noreferrer" style={{ flex: 1, textDecoration: "none" }}>
+            <Btn style={{ width: "100%", background: "#25d366", color: "#fff" }}>📲 Abrir WhatsApp</Btn>
+          </a>
         </div>
       </Modal>
     </div>

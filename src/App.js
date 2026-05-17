@@ -2663,13 +2663,14 @@ const sum = arr => arr.reduce((a, b) => a + parseFloat(b.monto_total || 0), 0);
                 }
               </td>
               <td style={{ padding: "11px 14px" }}>
-                <div style={{ display: "flex", gap: 6 }}>
-                  {est !== "pagado" && (
-                    <Btn variant="success" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>💰 Cobrar</Btn>
-                  )}
-                  <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️</Btn>
-                  <Btn variant="danger" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
-                </div>
+              <div style={{ display: "flex", gap: 6 }}>
+  {est !== "pagado" && (
+    <Btn variant="success" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>💰 Cobrar</Btn>
+  )}
+  <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️</Btn>
+  <Btn variant="purple" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => abrirCrearOrden(oc)}>📋</Btn>
+  <Btn variant="danger" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
+</div>
               </td>
             </tr>
           );

@@ -2356,18 +2356,20 @@ async function guardarOrdenDesdeOC() {
       imagen_url = `${supabase.storageUrl}/object/public/order-images/${path}`;
     } catch(e) { console.error(e); }
   }
-  await supabase.from("investment_orders").insert({
+  const { error } = await supabase.from("investment_orders").insert({
     title: formOrden.title,
     target_company: formOrden.target_company,
     description: formOrden.description,
     required_amount: parseFloat(formOrden.required_amount),
+    funded_amount: 0,
     interest_rate: parseFloat(formOrden.interest_rate) / 100,
     term_months: parseInt(formOrden.term_months),
     minimum_amount: parseFloat(formOrden.minimum_amount || 0),
     status: "draft",
-    code: "",
+    code: `OC-${Date.now()}`,
     imagen_url,
   });
+  if (error) { alert("Error: " + error.message); setSavingOrden(false); return; }
   setModalCrearOrden(null);
   setImgOrden(null);
   setImgOrdenPreview(null);

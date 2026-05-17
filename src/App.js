@@ -2347,7 +2347,7 @@ async function guardarOrdenDesdeOC() {
     alert("Completa el monto, tasa y plazo."); return;
   }
   setSavingOrden(true);
- let imagen_url = null;
+ let imagen_url = modalCrearOrden?.documento_url || null;
  if (imgOrden) {
   try {
     const ext = imgOrden.name.split(".").pop();

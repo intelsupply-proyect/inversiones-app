@@ -816,6 +816,7 @@ function ModalDetalleInversor({ inv, onClose }) {
   const [editBanco, setEditBanco] = useState(false);
   const [banco, setBanco] = useState(inv.banco || "");
   const [cuenta, setCuenta] = useState(inv.cuenta_bancaria || "");
+  const [phone, setPhone] = useState(inv.phone || "");
   const [savingBanco, setSavingBanco] = useState(false);
   const [modalComprobante, setModalComprobante] = useState(null);
   const [comprobanteFile, setComprobanteFile] = useState(null);

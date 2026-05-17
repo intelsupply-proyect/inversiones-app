@@ -2284,7 +2284,7 @@ function FormOC({ titulo, form, setForm, clientes, saving, docFile, setDocFile, 
   );
 }
 // ─── ADMIN: OC x COBRAR ──────────────────────────────────────────────────────
-function AdminOCxCobrar() {
+function AdminOCxCobrar({ profileId }) {
   const [ordenes, setOrdenes] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);

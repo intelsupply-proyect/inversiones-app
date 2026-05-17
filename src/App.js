@@ -844,8 +844,6 @@ async function guardarBanco() {
   await supabase.from("profiles").update({ banco, cuenta_bancaria: cuenta, phone }).eq("id", inv.investor_id);
   setEditBanco(false);
   setSavingBanco(false);
-}
-  }
 
   function handleCompFile(e) {
     const f = e.target.files[0];

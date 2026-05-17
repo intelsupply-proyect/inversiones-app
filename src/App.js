@@ -711,6 +711,8 @@ function AdminInversionistas() {
   const [modalDeposito, setModalDeposito] = useState(null);
   const [deposito, setDeposito] = useState({ monto: "", descripcion: "" });
   const [saving, setSaving] = useState(false);
+  const [modalNotif, setModalNotif] = useState(null);
+  const [mensajeNotif, setMensajeNotif] = useState("");
 
   useEffect(() => { loadInversores(); }, []);
 

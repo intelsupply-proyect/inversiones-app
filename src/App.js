@@ -2347,15 +2347,15 @@ async function guardarOrdenDesdeOC() {
     alert("Completa el monto, tasa y plazo."); return;
   }
   setSavingOrden(true);
-  let imagen_url = null;
-  if (imgOrden) {
-    try {
-      const ext = imgOrden.name.split(".").pop();
-      const path = `orders/${Date.now()}.${ext}`;
-      await supabase.storage.from("order-images").upload(path, imgOrden, { contentType: imgOrden.type });
-      imagen_url = `${supabase.storageUrl}/object/public/order-images/${path}`;
-    } catch(e) { console.error(e); }
-  }
+ let imagen_url = modalCrearOrden?.documento_url || null;
+ if (imgOrden) {
+  try {
+    const ext = imgOrden.name.split(".").pop();
+    const path = `orders/${Date.now()}.${ext}`;
+    await supabase.storage.from("order-images").upload(path, imgOrden, { contentType: imgOrden.type });
+    imagen_url = `${supabase.storageUrl}/object/public/order-images/${path}`;
+  } catch(e) { console.error(e); }
+}
   const { error } = await supabase.from("investment_orders").insert({
     title: formOrden.title,
     target_company: formOrden.target_company,

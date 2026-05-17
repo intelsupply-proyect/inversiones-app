@@ -2327,6 +2327,53 @@ function AdminOCxCobrar() {
     setLoading(false);
   }
 
+  function abrirCrearOrden(oc) {
+  setFormOrden({
+    title: `OC #${oc.numero_oc} — ${oc.clientes_oc?.nombre || ""}`,
+    target_company: oc.clientes_oc?.nombre || "",
+    description: oc.descripcion || "",
+    required_amount: "",
+    interest_rate: "",
+    term_months: "",
+    minimum_amount: "",
+  });
+  setImgOrden(null);
+  setImgOrdenPreview(null);
+  setModalCrearOrden(oc);
+}
+
+async function guardarOrdenDesdeOC() {
+  if (!formOrden.required_amount || !formOrden.interest_rate || !formOrden.term_months) {
+    alert("Completa el monto, tasa y plazo."); return;
+  }
+  setSavingOrden(true);
+  let imagen_url = null;
+  if (imgOrden) {
+    try {
+      const ext = imgOrden.name.split(".").pop();
+      const path = `orders/${Date.now()}.${ext}`;
+      await supabase.storage.from("order-images").upload(path, imgOrden, { contentType: imgOrden.type });
+      imagen_url = `${supabase.storageUrl}/object/public/order-images/${path}`;
+    } catch(e) { console.error(e); }
+  }
+  await supabase.from("investment_orders").insert({
+    title: formOrden.title,
+    target_company: formOrden.target_company,
+    description: formOrden.description,
+    required_amount: parseFloat(formOrden.required_amount),
+    interest_rate: parseFloat(formOrden.interest_rate) / 100,
+    term_months: parseInt(formOrden.term_months),
+    minimum_amount: parseFloat(formOrden.minimum_amount || 0),
+    status: "draft",
+    code: "",
+    imagen_url,
+  });
+  setModalCrearOrden(null);
+  setImgOrden(null);
+  setImgOrdenPreview(null);
+  setSavingOrden(false);
+  alert("✅ Borrador creado. Ve a Órdenes para completarlo y publicarlo.");
+}
  function getEstadoReal(oc) {
   if (oc.fecha_pago_real) return "pagado";
   if (!oc.fecha_facturacion) return "en_proceso";

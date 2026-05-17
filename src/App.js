@@ -2757,6 +2757,35 @@ const sum = arr => arr.reduce((a, b) => a + parseFloat(b.monto_total || 0), 0);
         </div>
       </Modal>
 
+<Modal open={!!modalCrearOrden} onClose={() => setModalCrearOrden(null)} title="Crear orden de inversión" maxWidth={520}>
+  <div style={{ background: "#f0fdf4", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#15803d" }}>
+    📋 Se creará un borrador en Órdenes. Podrás revisarlo y publicarlo cuando estés listo.
+  </div>
+  <Input label="Nombre de la orden *" value={formOrden.title} onChange={e => setFormOrden(p => ({ ...p, title: e.target.value }))} />
+  <Input label="Empresa destino *" value={formOrden.target_company} onChange={e => setFormOrden(p => ({ ...p, target_company: e.target.value }))} />
+  <Input label="Descripción (editable)" value={formOrden.description} onChange={e => setFormOrden(p => ({ ...p, description: e.target.value }))} />
+  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+    <Input label="Monto ($) *" type="number" value={formOrden.required_amount} onChange={e => setFormOrden(p => ({ ...p, required_amount: e.target.value }))} placeholder="12000" />
+    <Input label="Tasa (%) *" type="number" value={formOrden.interest_rate} onChange={e => setFormOrden(p => ({ ...p, interest_rate: e.target.value }))} placeholder="12" />
+    <Input label="Plazo (meses) *" type="number" value={formOrden.term_months} onChange={e => setFormOrden(p => ({ ...p, term_months: e.target.value }))} placeholder="6" />
+  </div>
+  <Input label="Monto mínimo por inversionista ($)" type="number" value={formOrden.minimum_amount} onChange={e => setFormOrden(p => ({ ...p, minimum_amount: e.target.value }))} placeholder="1000" />
+  <div style={{ marginBottom: 14 }}>
+    <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" }}>Imagen para la orden (opcional, diferente al doc OC)</div>
+    <div onClick={() => imgOrdenRef.current?.click()} style={{ border: "2px dashed #e2e8f0", borderRadius: 12, padding: imgOrdenPreview ? 4 : 16, textAlign: "center", cursor: "pointer", background: "#fafafa", minHeight: 70, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {imgOrdenPreview
+        ? <img src={imgOrdenPreview} alt="preview" style={{ maxHeight: 140, maxWidth: "100%", borderRadius: 8 }} />
+        : <div><div style={{ fontSize: 22, marginBottom: 4 }}>🖼️</div><div style={{ fontSize: 12, color: "#64748b" }}>Clic para agregar imagen pública de la orden</div></div>
+      }
+    </div>
+    <input ref={imgOrdenRef} type="file" accept="image/*" onChange={e => { const f = e.target.files[0]; if(f){ setImgOrden(f); setImgOrdenPreview(URL.createObjectURL(f)); }}} style={{ display: "none" }} />
+    {imgOrdenPreview && <button onClick={() => { setImgOrden(null); setImgOrdenPreview(null); }} style={{ marginTop: 6, border: "none", background: "#fef2f2", color: "#dc2626", borderRadius: 8, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>✕ Quitar</button>}
+  </div>
+  <div style={{ display: "flex", gap: 8 }}>
+    <Btn variant="secondary" onClick={() => setModalCrearOrden(null)} style={{ flex: 1 }}>Cancelar</Btn>
+    <Btn onClick={guardarOrdenDesdeOC} disabled={savingOrden} style={{ flex: 1, background: "#7c3aed", color: "#fff" }}>{savingOrden ? "Creando..." : "📋 Crear borrador"}</Btn>
+  </div>
+</Modal>
       {/* MODAL NUEVO CLIENTE */}
       <Modal open={modalCliente} onClose={() => setModalCliente(false)} title="Agregar cliente" maxWidth={380}>
         <Input label="Nombre del cliente *" value={nuevoCliente.nombre} onChange={e => setNuevoCliente(p => ({ ...p, nombre: e.target.value }))} placeholder="Ej: Bimbo Panamá" />

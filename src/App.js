@@ -521,17 +521,133 @@ function AdminOrdenes({ profileId }) {
     if (modalDetalle?.id === orden.id) setModalDetalle({ ...modalDetalle, status: nuevoEstado, ...extra });
   }
 
-  async function activarOrden(orden) {
-    const startDate = prompt("Fecha de inicio (YYYY-MM-DD):", new Date().toISOString().split("T")[0]);
-    if (!startDate) return;
-    const endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + parseInt(orden.term_months));
-    const endStr = endDate.toISOString().split("T")[0];
-    await supabase.from("investment_orders").update({ status: "active", start_date: startDate, end_date: endStr }).eq("id", orden.id);
-    await supabase.from("participations").update({ status: "active", start_date: startDate, end_date: endStr }).eq("order_id", orden.id).eq("status", "pending");
-    toast("Orden activada correctamente", "success");
-    loadOrdenes();
+  const [modalActivar, setModalActivar] = useState(null);
+  const [fechaInicioActivar, setFechaInicioActivar] = useState(new Date().toISOString().split("T")[0]);
+  const [activando, setActivando] = useState(false);
+
+  function abrirModalActivar(orden) {
+    setFechaInicioActivar(new Date().toISOString().split("T")[0]);
+    setModalActivar(orden);
   }
+
+  function calcularFechasPagos(startDate, termMonths) {
+    const pagos = [];
+    const base = new Date(startDate + "T12:00:00");
+    for (let m = 1; m <= termMonths; m++) {
+      const d = new Date(base);
+      d.setMonth(d.getMonth() + m);
+      pagos.push(d.toISOString().split("T")[0]);
+    }
+    return pagos;
+  }
+
+  async function confirmarActivacion() {
+    if (!fechaInicioActivar || !modalActivar) return;
+    setActivando(true);
+    try {
+      const orden = modalActivar;
+      const endDate = new Date(fechaInicioActivar + "T12:00:00");
+      endDate.setMonth(endDate.getMonth() + parseInt(orden.term_months));
+      const endStr = endDate.toISOString().split("T")[0];
+
+      await supabase.from("investment_orders")
+        .update({ status: "active", start_date: fechaInicioActivar, end_date: endStr })
+        .eq("id", orden.id);
+
+      const { data: parts } = await supabase.from("participations")
+        .update({ status: "active", start_date: fechaInicioActivar, end_date: endStr })
+        .eq("order_id", orden.id).eq("status", "pending")
+        .select();
+
+      // Generar pagos mensuales automáticos para cada participante
+      const fechasPagos = calcularFechasPagos(fechaInicioActivar, parseInt(orden.term_months));
+      const { data: partsActualizadas } = await supabase.from("participations")
+        .select("id, investor_id, amount, interest_rate")
+        .eq("order_id", orden.id).eq("status", "active");
+
+      if (partsActualizadas?.length > 0) {
+        const pagosMensuales = [];
+        partsActualizadas.forEach(p => {
+          const interesMensual = parseFloat(p.amount) * parseFloat(p.interest_rate) / parseInt(orden.term_months);
+          fechasPagos.forEach((fecha, idx) => {
+            const d = new Date(fecha);
+            pagosMensuales.push({
+              participation_id: p.id,
+              investor_id: p.investor_id,
+              order_id: orden.id,
+              mes: d.getMonth() + 1,
+              anio: d.getFullYear(),
+              monto_interes: parseFloat(interesMensual.toFixed(2)),
+              fecha_pago_esperado: fecha,
+              status: "pendiente",
+            });
+          });
+        });
+        // Borrar pagos previos (por si se re-activa) e insertar nuevos
+        await supabase.from("pagos_mensuales").delete().eq("order_id", orden.id);
+        await supabase.from("pagos_mensuales").insert(pagosMensuales);
+      }
+
+      toast(`Orden activada. ${partsActualizadas?.length || 0} inversionistas · ${parseInt(orden.term_months)} pagos mensuales generados`, "success");
+      setModalActivar(null);
+      loadOrdenes();
+    } catch (e) {
+      toast("Error al activar la orden: " + e.message, "error");
+    } finally {
+      setActivando(false);
+    }
+  }
+
+  // Modal de activación
+  const ModalActivarOrden = () => {
+    if (!modalActivar) return null;
+    const fechasPagos = fechaInicioActivar ? calcularFechasPagos(fechaInicioActivar, parseInt(modalActivar.term_months)) : [];
+    const endDate = fechaInicioActivar ? (() => { const d = new Date(fechaInicioActivar + "T12:00:00"); d.setMonth(d.getMonth() + parseInt(modalActivar.term_months)); return d.toISOString().split("T")[0]; })() : "";
+    return (
+      <Modal open={true} onClose={() => setModalActivar(null)} title={`Activar orden — ${modalActivar.code}`} maxWidth={460}>
+        <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontSize: 13 }}>
+          <div style={{ fontWeight: 700, color: "#15803d", marginBottom: 4 }}>📋 {modalActivar.title}</div>
+          <div style={{ color: "#374151" }}>{modalActivar.target_company} · {modalActivar.term_months} meses · {(parseFloat(modalActivar.interest_rate) * 100).toFixed(1)}%</div>
+          <div style={{ color: "#64748b", marginTop: 4 }}>Participantes pendientes: <strong>{modalActivar.participant_count || "—"}</strong></div>
+        </div>
+        <Input
+          label="Fecha de inicio de la inversión *"
+          type="date"
+          value={fechaInicioActivar}
+          onChange={e => setFechaInicioActivar(e.target.value)}
+        />
+        {fechaInicioActivar && (
+          <>
+            <div style={{ background: "#f8fafc", borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 8 }}>📅 Fechas calculadas automáticamente</div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", borderBottom: "1px solid #e2e8f0" }}>
+                <span style={{ color: "#64748b" }}>Inicio</span>
+                <span style={{ fontWeight: 700 }}>{fmtDate(fechaInicioActivar)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", borderBottom: "1px solid #e2e8f0" }}>
+                <span style={{ color: "#64748b" }}>Fin (vencimiento)</span>
+                <span style={{ fontWeight: 700, color: "#dc2626" }}>{fmtDate(endDate)}</span>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", marginBottom: 6 }}>Pagos mensuales — día {new Date(fechaInicioActivar + "T12:00:00").getDate()} de cada mes</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {fechasPagos.map((f, i) => (
+                    <span key={i} style={{ background: "#dbeafe", color: "#1d4ed8", borderRadius: 8, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>
+                      {new Date(f + "T12:00:00").toLocaleDateString("es-PA", { day: "2-digit", month: "short", year: "2-digit" })}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+        <div style={{ display: "flex", gap: 8 }}>
+          <Btn variant="secondary" onClick={() => setModalActivar(null)} style={{ flex: 1 }}>Cancelar</Btn>
+          <Btn variant="success" loading={activando} onClick={confirmarActivacion} style={{ flex: 1 }}>✅ Activar orden</Btn>
+        </div>
+      </Modal>
+    );
+  };
 
   const filtradas = filtro === "all" ? ordenes : ordenes.filter(o => o.status === filtro);
 
@@ -660,8 +776,9 @@ function AdminOrdenes({ profileId }) {
       </Modal>
 
       {modalDetalle && (
-        <ModalDetalleOrden orden={modalDetalle} onClose={() => setModalDetalle(null)} onActivar={activarOrden} onCambiarEstado={cambiarEstado} onReload={loadOrdenes} profileId={profileId} />
+        <ModalDetalleOrden orden={modalDetalle} onClose={() => setModalDetalle(null)} onActivar={abrirModalActivar} onCambiarEstado={cambiarEstado} onReload={loadOrdenes} profileId={profileId} />
       )}
+      <ModalActivarOrden />
     </div>
   );
 }
@@ -1581,7 +1698,7 @@ function PortalDashboard({ profileId, reloadKey }) {
   );
 }
 
-function PortalOportunidades({ profileId }) {
+function PortalOportunidades({ profileId, onParticipacionExitosa }) {
   const [ordenes, setOrdenes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [balanceDisponible, setBalanceDisponible] = useState(0);
@@ -1630,6 +1747,7 @@ function PortalOportunidades({ profileId }) {
       if (moveErr) throw moveErr;
       setExito(true);
       toast(`Participación de ${fmt(montoNum)} registrada en "${modalParticipar.title}"`, "success");
+      if (onParticipacionExitosa) onParticipacionExitosa();
       setTimeout(() => { setModalParticipar(null); setExito(false); setMonto(""); loadData(); }, 1500);
     } catch (e) {
       setErr("Error al procesar la participación. Intenta de nuevo.");
@@ -1686,7 +1804,7 @@ function PortalOportunidades({ profileId }) {
                   <ProgressBar value={parseFloat(o.funded_amount)} max={parseFloat(o.required_amount)} color="#7c3aed" />
                 </div>
                 {o.description && <div style={{ fontSize: 12, color: "#64748b", marginBottom: 14 }}>{o.description}</div>}
-                <Btn onClick={() => { setModalParticipar(o); setMonto(""); setErr(""); }} style={{ width: "100%", background: "#7c3aed" }}>Participar en esta orden</Btn>
+                <Btn onClick={() => { setModalParticipar(o); setMonto(parseFloat(o.minimum_amount || 0).toString()); setErr(""); }} style={{ width: "100%", background: "#7c3aed" }}>Participar en esta orden</Btn>
               </div>
             </div>
           ))}
@@ -1718,10 +1836,10 @@ function PortalOportunidades({ profileId }) {
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 8 }}>Simula tu inversión</div>
               <input type="range"
-                min={parseFloat(modalParticipar?.minimum_amount || 100)}
-                max={Math.min(balanceDisponible, parseFloat(modalParticipar?.remaining_amount || 0))}
-                step={100}
-                value={monto || parseFloat(modalParticipar?.minimum_amount || 100)}
+                min={parseFloat(modalParticipar?.minimum_amount || 0) || 0}
+                max={Math.max(parseFloat(modalParticipar?.minimum_amount || 0) || 0, Math.min(balanceDisponible, parseFloat(modalParticipar?.remaining_amount || 0)))}
+                step={Math.max(1, Math.floor(Math.min(balanceDisponible, parseFloat(modalParticipar?.remaining_amount || 0)) / 100) * 10) || 100}
+                value={parseFloat(monto) || parseFloat(modalParticipar?.minimum_amount || 0) || 0}
                 onChange={e => { setMonto(e.target.value); setErr(""); }}
                 style={{ width: "100%", marginBottom: 8, accentColor: "#7c3aed" }}
               />
@@ -2579,7 +2697,7 @@ function InvestorView({ perfil, onLogout }) {
       <Nav perfil={perfil} tab={tab} setTab={handleTabChange} tabs={tabs} onLogout={onLogout} accentColor="#2563eb" />
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 24px" }}>
         {tab === "dashboard" && <PortalDashboard profileId={perfil.id} reloadKey={reloadCount} />}
-        {tab === "oportunidades" && <PortalOportunidades profileId={perfil.id} />}
+        {tab === "oportunidades" && <PortalOportunidades profileId={perfil.id} onParticipacionExitosa={() => setReloadCount(c => c + 1)} />}
         {tab === "calendario" && <PortalCalendario profileId={perfil.id} />}
         {tab === "historial" && <PortalHistorial profileId={perfil.id} />}
         {tab === "movimientos" && <PortalMovimientos profileId={perfil.id} />}

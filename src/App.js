@@ -873,7 +873,7 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
       <div style={{ marginBottom: 16 }}><ProgressBar value={parseFloat(ordenActual.funded_amount || 0)} max={parseFloat(ordenActual.required_amount)} color="#2563eb" /></div>
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {ordenActual.status === "draft" && <Btn onClick={() => onCambiarEstado(ordenActual, "open")} style={{ flex: 1 }}>Publicar orden</Btn>}
-        {ordenActual.status === "funded" && <Btn variant="success" onClick={() => onActivar(ordenActual)} style={{ flex: 1 }}>✅ Activar orden</Btn>}
+        {(ordenActual.status === "funded" || (ordenActual.status === "open" && parseFloat(ordenActual.funded_amount || 0) >= parseFloat(ordenActual.required_amount || 1))) && <Btn variant="success" onClick={() => onActivar(ordenActual)} style={{ flex: 1 }}>✅ Activar orden</Btn>}
         {ordenActual.status === "active" && <Btn variant="danger" onClick={cerrarOrdenAnticipado} style={{ flex: 1 }}>Cerrar anticipadamente</Btn>}
         {["draft", "open"].includes(ordenActual.status) && <Btn variant="danger" onClick={eliminarOrden} style={{ flex: 1 }}>🗑️ Eliminar orden</Btn>}
       </div>
@@ -1745,6 +1745,12 @@ function PortalOportunidades({ profileId, onParticipacionExitosa }) {
         p_description: `Capital bloqueado — ${modalParticipar.title}`, p_participation_id: part.id,
       });
       if (moveErr) throw moveErr;
+      // Si la orden queda 100% fondeada, actualizarla a "funded" automaticamente
+      const nuevoFondeado = parseFloat(modalParticipar.funded_amount || 0) + montoNum;
+      const requerido = parseFloat(modalParticipar.required_amount || 0);
+      if (requerido > 0 && nuevoFondeado >= requerido) {
+        await supabase.from("investment_orders").update({ status: "funded" }).eq("id", modalParticipar.id);
+      }
       setExito(true);
       toast(`Participación de ${fmt(montoNum)} registrada en "${modalParticipar.title}"`, "success");
       if (onParticipacionExitosa) onParticipacionExitosa();

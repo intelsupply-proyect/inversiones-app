@@ -605,10 +605,18 @@ function AdminOrdenes({ profileId }) {
     const endDate = fechaInicioActivar ? (() => { const d = new Date(fechaInicioActivar + "T12:00:00"); d.setMonth(d.getMonth() + parseInt(modalActivar.term_months)); return d.toISOString().split("T")[0]; })() : "";
     return (
       <Modal open={true} onClose={() => setModalActivar(null)} title={`Activar orden — ${modalActivar.code}`} maxWidth={460}>
+        {parseFloat(modalActivar.funded_amount || 0) < parseFloat(modalActivar.required_amount || 0) && (
+          <div style={{ background: "#fff7ed", border: "1.5px solid #fed7aa", borderRadius: 12, padding: "12px 16px", marginBottom: 12, fontSize: 13 }}>
+            <div style={{ fontWeight: 700, color: "#c2410c", marginBottom: 2 }}>⚠️ Fondeo parcial</div>
+            <div style={{ color: "#7c2d12" }}>
+              La orden tiene <strong>{fmt(modalActivar.funded_amount)}</strong> de <strong>{fmt(modalActivar.required_amount)}</strong> requeridos (<strong>{parseFloat(modalActivar.funding_percentage || 0).toFixed(0)}%</strong>). Al activar, se cerrará para nuevas participaciones.
+            </div>
+          </div>
+        )}
         <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontSize: 13 }}>
           <div style={{ fontWeight: 700, color: "#15803d", marginBottom: 4 }}>📋 {modalActivar.title}</div>
           <div style={{ color: "#374151" }}>{modalActivar.target_company} · {modalActivar.term_months} meses · {(parseFloat(modalActivar.interest_rate) * 100).toFixed(1)}%</div>
-          <div style={{ color: "#64748b", marginTop: 4 }}>Participantes pendientes: <strong>{modalActivar.participant_count || "—"}</strong></div>
+          <div style={{ color: "#64748b", marginTop: 4 }}>Participantes: <strong>{modalActivar.participant_count || "—"}</strong></div>
         </div>
         <Input
           label="Fecha de inicio de la inversión *"
@@ -873,7 +881,11 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
       <div style={{ marginBottom: 16 }}><ProgressBar value={parseFloat(ordenActual.funded_amount || 0)} max={parseFloat(ordenActual.required_amount)} color="#2563eb" /></div>
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {ordenActual.status === "draft" && <Btn onClick={() => onCambiarEstado(ordenActual, "open")} style={{ flex: 1 }}>Publicar orden</Btn>}
-        {(ordenActual.status === "funded" || (ordenActual.status === "open" && parseFloat(ordenActual.funded_amount || 0) >= parseFloat(ordenActual.required_amount || 1))) && <Btn variant="success" onClick={() => onActivar(ordenActual)} style={{ flex: 1 }}>✅ Activar orden</Btn>}
+        {(["open", "funded"].includes(ordenActual.status) && parseFloat(ordenActual.funded_amount || 0) > 0) && (
+          <Btn variant="success" onClick={() => onActivar(ordenActual)} style={{ flex: 1 }}>
+            ✅ Activar orden {parseFloat(ordenActual.funded_amount || 0) < parseFloat(ordenActual.required_amount || 0) ? `(${parseFloat(ordenActual.funding_percentage || 0).toFixed(0)}% fondeado)` : ""}
+          </Btn>
+        )}
         {ordenActual.status === "active" && <Btn variant="danger" onClick={cerrarOrdenAnticipado} style={{ flex: 1 }}>Cerrar anticipadamente</Btn>}
         {["draft", "open"].includes(ordenActual.status) && <Btn variant="danger" onClick={eliminarOrden} style={{ flex: 1 }}>🗑️ Eliminar orden</Btn>}
       </div>

@@ -1126,7 +1126,8 @@ function ModalDetalleInversor({ inv, onClose }) {
     const ext = comprobanteFile.name.split(".").pop();
     const path = `pagos/${pago.id}_${Date.now()}.${ext}`;
     await supabase.storage.from("comprobantes").upload(path, comprobanteFile, { contentType: comprobanteFile.type });
-    const url = `${supabase.storageUrl}/object/public/comprobantes/${path}`;
+    const { data: urlData } = supabase.storage.from("comprobantes").getPublicUrl(path);
+    const url = urlData.publicUrl;
     const { error } = await supabase.from("pagos_mensuales").update({ comprobante_url: url, status: "pagado", fecha_pago: new Date().toISOString().split("T")[0] }).eq("id", pago.id);
     if (error) { toast("Error al subir el comprobante.", "error"); setSavingComp(false); return; }
     toast("Comprobante subido y pago marcado", "success");

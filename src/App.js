@@ -2267,7 +2267,8 @@ function AdminOCxCobrar({ profileId }) {
         const ext = imgOrden.name.split(".").pop();
         const path = `orders/${Date.now()}.${ext}`;
         await supabase.storage.from("order-images").upload(path, imgOrden, { contentType: imgOrden.type });
-        imagen_url = `${supabase.storageUrl}/object/public/order-images/${path}`;
+        const { data: urlData } = supabase.storage.from("order-images").getPublicUrl(path);
+        imagen_url = urlData.publicUrl;
       } catch(e) { console.error(e); }
     }
     const { error } = await supabase.from("investment_orders").insert({

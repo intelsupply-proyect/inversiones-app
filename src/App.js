@@ -1745,7 +1745,8 @@ function PortalOportunidades({ profileId, onParticipacionExitosa }) {
     setErr("");
     const montoNum = parseFloat(monto);
     if (!monto || montoNum <= 0) { setErr("Ingresa un monto válido."); return; }
-    if (montoNum < parseFloat(modalParticipar.minimum_amount || 0)) { setErr(`El monto mínimo es ${fmt(modalParticipar.minimum_amount)}.`); return; }
+    const minimoEfectivo = Math.min(parseFloat(modalParticipar.minimum_amount || 0), parseFloat(modalParticipar.remaining_amount || 0));
+    if (montoNum < minimoEfectivo) { setErr(`El monto mínimo es ${fmt(minimoEfectivo)}.`); return; }
     const maxDisponible = Math.min(balanceDisponible, parseFloat(modalParticipar.remaining_amount || 0));
     if (montoNum > balanceDisponible) { setErr(`Tu balance disponible es ${fmt(balanceDisponible)}.`); return; }
     if (montoNum > parseFloat(modalParticipar.remaining_amount || 0)) { setErr(`Solo quedan ${fmt(modalParticipar.remaining_amount)} disponibles en esta orden.`); return; }

@@ -478,7 +478,8 @@ function AdminOrdenes({ profileId }) {
     const path = `orders/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("order-images").upload(path, file, { contentType: file.type });
     if (error) throw error;
-    return `${supabase.storageUrl}/object/public/order-images/${path}`;
+    const { data: urlData } = supabase.storage.from("order-images").getPublicUrl(path);
+return urlData.publicUrl;
   }
 
   function handleImgFile(e) {

@@ -1828,7 +1828,10 @@ function PortalOportunidades({ profileId, onParticipacionExitosa }) {
                   <ProgressBar value={parseFloat(o.funded_amount)} max={parseFloat(o.required_amount)} color="#7c3aed" />
                 </div>
                 {o.description && <div style={{ fontSize: 12, color: "#64748b", marginBottom: 14 }}>{o.description}</div>}
-                <Btn onClick={() => { setModalParticipar(o); setMonto(parseFloat(o.minimum_amount || 0).toString()); setErr(""); }} style={{ width: "100%", background: "#7c3aed" }}>Participar en esta orden</Btn>
+               <Btn onClick={() => { 
+  const minimoEfectivo = Math.min(parseFloat(o.minimum_amount || 0), parseFloat(o.remaining_amount || 0));
+  setModalParticipar(o); setMonto(minimoEfectivo.toString()); setErr(""); 
+}} style={{ width: "100%", background: "#7c3aed" }}>Participar en esta orden</Btn>
               </div>
             </div>
           ))}

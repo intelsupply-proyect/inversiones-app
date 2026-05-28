@@ -1851,7 +1851,7 @@ function PortalOportunidades({ profileId, onParticipacionExitosa }) {
               {[
                 ["Tasa del período", `${(parseFloat(modalParticipar?.interest_rate || 0) * 100).toFixed(1)}%`],
                 ["Plazo", `${modalParticipar?.term_months} meses`],
-                ["Monto mínimo", fmt(modalParticipar?.minimum_amount || 0)],
+                ["Monto mínimo", fmt(Math.min(parseFloat(modalParticipar?.minimum_amount || 0), parseFloat(modalParticipar?.remaining_amount || 0)))],
                 ["Disponible en orden", fmt(modalParticipar?.remaining_amount || 0)],
                 ["Tu balance disponible", fmt(balanceDisponible)],
               ].map(([l, v]) => (

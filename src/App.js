@@ -1331,7 +1331,10 @@ function AdminPagosMensuales() {
       const ext = imgFile.name?.split(".").pop() || "jpg";
       const path = `pagos/${Date.now()}.${ext}`;
       const { error: uploadErr } = await supabase.storage.from("comprobantes").upload(path, imgFile, { contentType: imgFile.type });
-      if (!uploadErr) comprobante_url = `${supabase.storageUrl}/object/public/comprobantes/${path}`;
+      if (!uploadErr) {
+  const { data: urlData } = supabase.storage.from("comprobantes").getPublicUrl(path);
+  comprobante_url = urlData.publicUrl;
+}
     }
     const { error } = await supabase.from("pagos_mensuales").insert({
       participation_id: form.participation_id, investor_id: part.investor_id, order_id: part.order_id,

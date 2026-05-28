@@ -1863,7 +1863,7 @@ function PortalOportunidades({ profileId, onParticipacionExitosa }) {
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 8 }}>Simula tu inversión</div>
               <input type="range"
-                min={parseFloat(modalParticipar?.minimum_amount || 0) || 0}
+                min={Math.min(parseFloat(modalParticipar?.minimum_amount || 0), parseFloat(modalParticipar?.remaining_amount || 0)) || 0}
                 max={Math.max(parseFloat(modalParticipar?.minimum_amount || 0) || 0, Math.min(balanceDisponible, parseFloat(modalParticipar?.remaining_amount || 0)))}
                 step={Math.max(1, Math.floor(Math.min(balanceDisponible, parseFloat(modalParticipar?.remaining_amount || 0)) / 100) * 10) || 100}
                 value={parseFloat(monto) || parseFloat(modalParticipar?.minimum_amount || 0) || 0}

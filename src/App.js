@@ -938,7 +938,6 @@ async function revertirParticipacion(part) {
   }
 }
 
-async function cerrarOrdenAnticipado() {
   async function cerrarOrdenAnticipado() {
     const ok = await confirm({ title: "¿Cerrar orden anticipadamente?", message: `La orden "${ordenActual.code}" quedará como cerrada anticipadamente. Esta acción no se puede deshacer.`, confirmLabel: "Sí, cerrar", confirmVariant: "danger" });
     if (!ok) return;

@@ -1313,18 +1313,26 @@ function ModalDetalleInversor({ inv, onClose }) {
 
   return (
     <Modal open={true} onClose={onClose} title={inv.full_name} maxWidth={720}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 8 }}>
-        {[
-          { label: "Balance disponible", val: fmt(inv.available_balance), color: "#7c3aed" },
-          { label: "Capital invertido", val: fmt(inv.total_invested), color: "#0ea5e9" },
-          { label: "Ganancias totales", val: fmt(inv.total_earnings), color: "#16a34a" },
-        ].map(m => (
-          <div key={m.label} style={{ background: "#f8fafc", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
-            <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 4, textTransform: "uppercase" }}>{m.label}</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: m.color }}>{m.val}</div>
+      {/* Tarjetas resumen — 4 métricas */}
+      {(() => {
+        const totalGanado = earnings.reduce((a, b) => a + parseFloat(b.interest_earned || 0), 0);
+        const totalRetirado = pagos.filter(p => p.destino === "retiro" && p.status === "pagado").reduce((a, b) => a + parseFloat(b.monto_interes || 0), 0);
+        return (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10, marginBottom: 8 }}>
+            {[
+              { label: "Balance disponible", val: fmt(inv.available_balance), color: "#7c3aed" },
+              { label: "Capital invertido", val: fmt(inv.total_invested), color: "#0ea5e9" },
+              { label: "Ganancias totales", val: fmt(totalGanado), color: "#16a34a" },
+              { label: "Total retirado", val: fmt(totalRetirado), color: "#dc2626" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "#f8fafc", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
+                <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 4, textTransform: "uppercase" }}>{m.label}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: m.color }}>{m.val}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        );
+      })()}
       <div style={{ marginBottom: 16, textAlign: "right" }}>
         <Btn variant="warning" style={{ fontSize: 11, padding: "5px 12px" }} onClick={() => setModalAjuste(true)}>⚙️ Ajustar balance</Btn>
       </div>

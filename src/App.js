@@ -1441,28 +1441,51 @@ async function subirComprobante(pago) {
       </Modal>
 
       {modalComprobante && (
-        <Modal open={true} onClose={() => setModalComprobante(null)} title={`Comprobante — ${mesesNombre[modalComprobante.mes - 1]} ${modalComprobante.anio}`} maxWidth={420}>
-          <div style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 13 }}>
-            Monto del interés: <strong style={{ color: "#16a34a" }}>{fmt(modalComprobante.monto_interes)}</strong>
+        <Modal open={true} onClose={() => setModalComprobante(null)} title={`Registrar pago — ${mesesNombre[modalComprobante.mes - 1]} ${modalComprobante.anio}`} maxWidth={440}>
+          <div style={{ background: "#f8fafc", borderRadius: 10, padding: "12px 14px", marginBottom: 16, fontSize: 13 }}>
+            Monto del interés: <strong style={{ color: "#16a34a", fontSize: 16 }}>{fmt(modalComprobante.monto_interes)}</strong>
           </div>
+
+          {/* Selector de tipo de pago */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 8, textTransform: "uppercase" }}>¿Cómo se entregó el pago?</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div onClick={() => setTipoPago("balance")}
+                style={{ border: `2px solid ${tipoPago === "balance" ? "#2563eb" : "#e2e8f0"}`, borderRadius: 12, padding: "14px 12px", cursor: "pointer", background: tipoPago === "balance" ? "#eff6ff" : "#fff", textAlign: "center", transition: "all 0.15s" }}>
+                <div style={{ fontSize: 24, marginBottom: 6 }}>💼</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: tipoPago === "balance" ? "#2563eb" : "#374151" }}>Al balance</div>
+                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 3 }}>Queda disponible para reinvertir o retirar</div>
+              </div>
+              <div onClick={() => setTipoPago("retiro")}
+                style={{ border: `2px solid ${tipoPago === "retiro" ? "#16a34a" : "#e2e8f0"}`, borderRadius: 12, padding: "14px 12px", cursor: "pointer", background: tipoPago === "retiro" ? "#f0fdf4" : "#fff", textAlign: "center", transition: "all 0.15s" }}>
+                <div style={{ fontSize: 24, marginBottom: 6 }}>🏦</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: tipoPago === "retiro" ? "#16a34a" : "#374151" }}>Retiro bancario</div>
+                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 3 }}>El dinero salió a su cuenta bancaria</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Comprobante */}
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" }}>Comprobante (opcional)</div>
           <div onClick={() => compRef.current?.click()}
-            style={{ border: "2px dashed #e2e8f0", borderRadius: 12, padding: comprobantePreview ? 4 : 24, textAlign: "center", cursor: "pointer", background: "#fafafa", minHeight: 80, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+            style={{ border: "2px dashed #e2e8f0", borderRadius: 12, padding: comprobantePreview ? 4 : 20, textAlign: "center", cursor: "pointer", background: "#fafafa", minHeight: 70, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
             {comprobantePreview
-              ? <img src={comprobantePreview} alt="comprobante" style={{ maxHeight: 180, maxWidth: "100%", borderRadius: 8 }} />
-              : <div><div style={{ fontSize: 28, marginBottom: 6 }}>📎</div><div style={{ fontSize: 13, color: "#64748b" }}>Clic para seleccionar imagen o PDF</div></div>
+              ? <img src={comprobantePreview} alt="comprobante" style={{ maxHeight: 160, maxWidth: "100%", borderRadius: 8 }} />
+              : <div><div style={{ fontSize: 24, marginBottom: 4 }}>📎</div><div style={{ fontSize: 12, color: "#64748b" }}>Clic para seleccionar imagen o PDF</div></div>
             }
           </div>
           <input ref={compRef} type="file" accept="image/*,.pdf" onChange={handleCompFile} style={{ display: "none" }} />
+
           <div style={{ display: "flex", gap: 8 }}>
             <Btn variant="secondary" onClick={() => setModalComprobante(null)} style={{ flex: 1 }}>Cancelar</Btn>
-            <Btn loading={savingComp} onClick={() => subirComprobante(modalComprobante)} disabled={!comprobanteFile} style={{ flex: 1 }}>Guardar comprobante</Btn>
+            <Btn loading={savingComp} onClick={() => subirComprobante(modalComprobante)}
+              variant={tipoPago === "balance" ? "primary" : "success"}
+              style={{ flex: 1 }}>
+              {tipoPago === "balance" ? "💼 Acreditar al balance" : "🏦 Registrar retiro"}
+            </Btn>
           </div>
         </Modal>
       )}
-    </Modal>
-  );
-}
-
 // ─── ADMIN: PAGOS MENSUALES ──────────────────────────────────────────────────
 function AdminPagosMensuales() {
   const [pagos, setPagos] = useState([]);

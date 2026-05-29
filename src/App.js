@@ -1224,6 +1224,7 @@ function ModalDetalleInversor({ inv, onClose }) {
     setParticipaciones(parts || []);
     setMovimientos(movs || []);
     setPagos(pags || []);
+    setLoading(false);
   }
 
   async function guardarAjuste() {

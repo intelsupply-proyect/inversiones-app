@@ -1265,7 +1265,7 @@ function ModalDetalleInversor({ inv, onClose }) {
 
       // 1. Marcar pago mensual como pagado
       await supabase.from("pagos_mensuales").update({
-        comprobante_url: url, status: "pagado", fecha_pago: fechaHoy
+        comprobante_url: url, status: "pagado", fecha_pago: fechaHoy, destino: tipoPago
       }).eq("id", pago.id);
 
       // 2. Registrar en earnings

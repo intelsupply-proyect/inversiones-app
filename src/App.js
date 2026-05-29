@@ -799,9 +799,8 @@ function ModalPagoConFecha({ part, ordenActual, procesandoPago, onProcesar, onCe
   const startDate = part.start_date || ordenActual.start_date;
   const endDate = part.end_date || ordenActual.end_date;
 
-  const diasTotales = startDate && endDate
-    ? Math.round((new Date(endDate + "T12:00:00") - new Date(startDate + "T12:00:00")) / (1000*60*60*24))
-    : parseFloat(ordenActual.term_months || 1) * 30;
+  // Meses de 30 días fijos como nóminas
+const diasTotales = parseFloat(ordenActual.term_months || 1) * 30;
 
   const diasTranscurridos = startDate
     ? Math.round((new Date(fechaPago + "T12:00:00") - new Date(startDate + "T12:00:00")) / (1000*60*60*24))

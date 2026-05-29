@@ -1482,7 +1482,6 @@ function ModalDetalleInversor({ inv, onClose }) {
             );
           })()}
           {tab === "movimientos" && (
-          {tab === "movimientos" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {movimientos.map(m => (
                 <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "#f8fafc", borderRadius: 10 }}>

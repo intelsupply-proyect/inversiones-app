@@ -1251,9 +1251,7 @@ function ModalDetalleInversor({ inv, onClose }) {
     setComprobanteFile(f); setComprobantePreview(URL.createObjectURL(f));
   }
 
-  const [tipoPago, setTipoPago] = useState("balance"); // "balance" o "retiro"
-
-async function subirComprobante(pago) {
+  async function subirComprobante(pago) {
     if (!comprobanteFile) return;
     setSavingComp(true);
     try {

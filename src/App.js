@@ -866,7 +866,7 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
   const [editDesc, setEditDesc] = useState(false);
   const [nuevaDesc, setNuevaDesc] = useState(orden.description || "");
   const [savingDesc, setSavingDesc] = useState(false);
-  const { confirm, Dialog: ConfirmDialogComp } = useConfirm();
+  const [revirtiendoId, setRevirtiendoId] = useState(null);
 
   useEffect(() => { loadParticipaciones(); }, []);
 

@@ -1221,12 +1221,10 @@ function ModalDetalleInversor({ inv, onClose }) {
       supabase.from("participation_detail").select("*").eq("investor_id", inv.investor_id).order("created_at", { ascending: false }),
       supabase.from("capital_movements").select("*").eq("investor_id", inv.investor_id).order("created_at", { ascending: false }),
       supabase.from("pagos_mensuales").select("*").eq("investor_id", inv.investor_id).order("anio,mes"),
-      supabase.from("earnings").select("*").eq("investor_id", inv.investor_id).eq("status", "paid"),
-    ]);
+      ]);
     setParticipaciones(parts || []);
     setMovimientos(movs || []);
     setPagos(pags || []);
-    setEarnings(earns || []);
   }
 
   async function guardarAjuste() {

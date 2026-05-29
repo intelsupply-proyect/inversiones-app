@@ -1209,6 +1209,10 @@ function ModalDetalleInversor({ inv, onClose }) {
   const [earnings, setEarnings] = useState([]);
   const compRef = useRef(null);
 
+  const totalGanado = earnings.reduce((a, b) => a + parseFloat(b.interest_earned || 0), 0);
+  const totalRetirado = pagos.filter(p => p.destino === "retiro" && p.status === "pagado").reduce((a, b) => a + parseFloat(b.monto_interes || 0), 0);
+  const totalEnBalance = pagos.filter(p => p.destino === "balance" && p.status === "pagado").reduce((a, b) => a + parseFloat(b.monto_interes || 0), 0);
+
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {

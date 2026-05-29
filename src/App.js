@@ -993,7 +993,10 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
               <div>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{p.investor_name}</div>
                 <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{fmt(p.amount)} · {(parseFloat(p.interest_rate) * 100).toFixed(1)}% · vence {fmtDate(p.end_date)}</div>
-                <div style={{ fontSize: 12, color: "#16a34a", marginTop: 2 }}>Ganancia proyectada: {fmt(p.projected_earnings)}</div>
+                <div style={{ fontSize: 12, color: "#16a34a", marginTop: 2 }}>
+  {p.status === "completed" ? "Ganancia recibida: " : "Ganancia proyectada: "}
+  {fmt(p.actual_earnings || p.projected_earnings)}
+</div>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <Badge status={p.status} />

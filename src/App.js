@@ -864,6 +864,9 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
   const [ordenActual, setOrdenActual] = useState(orden);
   const [modalPago, setModalPago] = useState(null);
   const [procesandoPago, setProcesandoPago] = useState(false);
+  const [editDesc, setEditDesc] = useState(false);
+  const [nuevaDesc, setNuevaDesc] = useState(orden.description || "");
+  const [savingDesc, setSavingDesc] = useState(false);
   const { confirm, Dialog: ConfirmDialogComp } = useConfirm();
 
   useEffect(() => { loadParticipaciones(); }, []);

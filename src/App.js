@@ -1358,7 +1358,7 @@ function ModalDetalleInversor({ inv, onClose }) {
       </div>
 
       <div style={{ display: "flex", gap: 0, borderBottom: "1.5px solid #e2e8f0", marginBottom: 16 }}>
-        {[["inversiones","Inversiones"], ["pagos","Pagos mensuales"], ["movimientos","Movimientos"]].map(([id, lbl]) => (
+        {[["inversiones","Inversiones"], ["pagos","Pagos mensuales"], ["ganancias","Ganancias"], ["movimientos","Movimientos"]].map(([id, lbl]) => (
           <button key={id} onClick={() => setTab(id)}
             style={{ border: "none", background: "transparent", padding: "8px 14px", cursor: "pointer", fontSize: 12,
               fontWeight: tab === id ? 700 : 400, color: tab === id ? "#0f172a" : "#94a3b8",

@@ -955,6 +955,27 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
           </div>
         ))}
       </div>
+      <div style={{ background: "#f8fafc", borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: editDesc ? 10 : 0 }}>
+    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>📝 Descripción</div>
+    <Btn variant="secondary" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => setEditDesc(p => !p)}>
+      {editDesc ? "Cancelar" : "✏️ Editar"}
+    </Btn>
+  </div>
+  {editDesc ? (
+    <div style={{ marginTop: 10 }}>
+      <textarea value={nuevaDesc} onChange={e => setNuevaDesc(e.target.value)} rows={3}
+        style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1.5px solid #e2e8f0", fontSize: 13, outline: "none", color: "#0f172a", background: "#fff", boxSizing: "border-box", resize: "vertical" }} />
+      <Btn onClick={guardarDescripcion} loading={savingDesc} style={{ marginTop: 8, width: "100%" }}>Guardar descripción</Btn>
+    </div>
+  ) : (
+    <div style={{ fontSize: 13, color: ordenActual.description ? "#374151" : "#94a3b8", marginTop: 6 }}>
+      {ordenActual.description || "Sin descripción"}
+    </div>
+  )}
+</div>
+
+<div style={{ marginBottom: 16 }}><ProgressBar value={parseFloat(ordenActual.funded_amount || 0)} max={parseFloat(ordenActual.required_amount)} color="#2563eb" /></div>
       <div style={{ marginBottom: 16 }}><ProgressBar value={parseFloat(ordenActual.funded_amount || 0)} max={parseFloat(ordenActual.required_amount)} color="#2563eb" /></div>
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {ordenActual.status === "draft" && <Btn onClick={() => onCambiarEstado(ordenActual, "open")} style={{ flex: 1 }}>Publicar orden</Btn>}

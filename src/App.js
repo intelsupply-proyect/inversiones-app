@@ -1250,19 +1250,62 @@ function ModalDetalleInversor({ inv, onClose }) {
     setComprobanteFile(f); setComprobantePreview(URL.createObjectURL(f));
   }
 
-  async function subirComprobante(pago) {
+  const [tipoPago, setTipoPago] = useState("balance"); // "balance" o "retiro"
+
+async function subirComprobante(pago) {
     if (!comprobanteFile) return;
     setSavingComp(true);
-    const ext = comprobanteFile.name.split(".").pop();
-    const path = `pagos/${pago.id}_${Date.now()}.${ext}`;
-    await supabase.storage.from("comprobantes").upload(path, comprobanteFile, { contentType: comprobanteFile.type });
-    const { data: urlData } = supabase.storage.from("comprobantes").getPublicUrl(path);
-    const url = urlData.publicUrl;
-    const { error } = await supabase.from("pagos_mensuales").update({ comprobante_url: url, status: "pagado", fecha_pago: new Date().toISOString().split("T")[0] }).eq("id", pago.id);
-    if (error) { toast("Error al subir el comprobante.", "error"); setSavingComp(false); return; }
-    toast("Comprobante subido y pago marcado", "success");
-    setModalComprobante(null); setComprobanteFile(null); setComprobantePreview(null);
-    loadData(); setSavingComp(false);
+    try {
+      const ext = comprobanteFile.name.split(".").pop();
+      const path = `pagos/${pago.id}_${Date.now()}.${ext}`;
+      await supabase.storage.from("comprobantes").upload(path, comprobanteFile, { contentType: comprobanteFile.type });
+      const { data: urlData } = supabase.storage.from("comprobantes").getPublicUrl(path);
+      const url = urlData.publicUrl;
+
+      const fechaHoy = new Date().toISOString().split("T")[0];
+
+      // 1. Marcar pago mensual como pagado
+      await supabase.from("pagos_mensuales").update({
+        comprobante_url: url, status: "pagado", fecha_pago: fechaHoy
+      }).eq("id", pago.id);
+
+      // 2. Registrar en earnings
+      await supabase.from("earnings").insert({
+        participation_id: pago.participation_id,
+        investor_id: pago.investor_id,
+        principal: 0,
+        interest_earned: parseFloat(pago.monto_interes),
+        type: "partial",
+        payout_date: fechaHoy,
+        status: "paid",
+      });
+
+      // 3. Registrar movimiento según la opción elegida
+      if (tipoPago === "balance") {
+        await supabase.rpc("record_capital_movement", {
+          p_investor_id: pago.investor_id,
+          p_amount: parseFloat(pago.monto_interes),
+          p_type: "earnings_credit",
+          p_description: `Interés mensual acreditado — ${mesesNombre[pago.mes - 1]} ${pago.anio}`,
+        });
+        toast(`${fmt(pago.monto_interes)} acreditados al balance de ${inv.full_name}`, "success");
+      } else {
+        await supabase.rpc("record_capital_movement", {
+          p_investor_id: pago.investor_id,
+          p_amount: parseFloat(pago.monto_interes),
+          p_type: "withdrawal",
+          p_description: `Interés mensual retirado a cuenta bancaria — ${mesesNombre[pago.mes - 1]} ${pago.anio}`,
+        });
+        toast(`${fmt(pago.monto_interes)} registrados como retiro bancario de ${inv.full_name}`, "success");
+      }
+
+      setModalComprobante(null); setComprobanteFile(null); setComprobantePreview(null);
+      loadData();
+    } catch(e) {
+      toast("Error al procesar el pago.", "error");
+    } finally {
+      setSavingComp(false);
+    }
   }
 
   const mesesNombre = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];

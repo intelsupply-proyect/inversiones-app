@@ -1483,8 +1483,11 @@ function ModalDetalleInversor({ inv, onClose }) {
               {tipoPago === "balance" ? "💼 Acreditar al balance" : "🏦 Registrar retiro"}
             </Btn>
           </div>
-        </Modal>
+       </Modal>
       )}
+    </Modal>
+  );
+}
 // ─── ADMIN: PAGOS MENSUALES ──────────────────────────────────────────────────
 function AdminPagosMensuales() {
   const [pagos, setPagos] = useState([]);

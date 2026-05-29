@@ -1319,8 +1319,6 @@ function ModalDetalleInversor({ inv, onClose }) {
     <Modal open={true} onClose={onClose} title={inv.full_name} maxWidth={720}>
       {/* Tarjetas resumen — 4 métricas */}
       {(() => {
-        const totalGanado = earnings.reduce((a, b) => a + parseFloat(b.interest_earned || 0), 0);
-        const totalRetirado = pagos.filter(p => p.destino === "retiro" && p.status === "pagado").reduce((a, b) => a + parseFloat(b.monto_interes || 0), 0);
         return (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10, marginBottom: 8 }}>
             {[

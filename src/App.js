@@ -1417,6 +1417,71 @@ function ModalDetalleInversor({ inv, onClose }) {
               ))}
             </div>
           )}
+{tab === "ganancias" && (() => {
+            const totalGanado = earnings.reduce((a, b) => a + parseFloat(b.interest_earned || 0), 0);
+            const totalRetirado = pagos.filter(p => p.destino === "retiro" && p.status === "pagado").reduce((a, b) => a + parseFloat(b.monto_interes || 0), 0);
+            const totalEnBalance = pagos.filter(p => p.destino === "balance" && p.status === "pagado").reduce((a, b) => a + parseFloat(b.monto_interes || 0), 0);
+
+            // Agrupar pagos por mes/año
+            const porMes = {};
+            pagos.filter(p => p.status === "pagado").forEach(p => {
+              const key = `${p.anio}-${String(p.mes).padStart(2,"0")}`;
+              if (!porMes[key]) porMes[key] = { mes: p.mes, anio: p.anio, balance: 0, retirado: 0, total: 0 };
+              if (p.destino === "retiro") porMes[key].retirado += parseFloat(p.monto_interes || 0);
+              else porMes[key].balance += parseFloat(p.monto_interes || 0);
+              porMes[key].total += parseFloat(p.monto_interes || 0);
+            });
+            const mesesOrdenados = Object.entries(porMes).sort((a, b) => b[0].localeCompare(a[0]));
+
+            return (
+              <div>
+                {/* Resumen global */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
+                  {[
+                    { label: "Total ganado", val: fmt(totalGanado), color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
+                    { label: "💼 En balance", val: fmt(totalEnBalance), color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
+                    { label: "🏦 Retirado", val: fmt(totalRetirado), color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+                  ].map(m => (
+                    <div key={m.label} style={{ background: m.bg, borderRadius: 10, padding: "12px 14px", textAlign: "center", border: `1.5px solid ${m.border}` }}>
+                      <div style={{ fontSize: 10, color: "#64748b", marginBottom: 4, textTransform: "uppercase", fontWeight: 600 }}>{m.label}</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: m.color }}>{m.val}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desglose por mes */}
+                {mesesOrdenados.length === 0 ? (
+                  <div style={{ padding: 30, textAlign: "center", color: "#94a3b8" }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
+                    <div>Sin ganancias registradas aún</div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", marginBottom: 4 }}>Desglose por mes</div>
+                    {mesesOrdenados.map(([key, data]) => (
+                      <div key={key} style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13 }}>{mesesNombre[data.mes - 1]} {data.anio}</div>
+                          <div style={{ fontWeight: 800, fontSize: 14, color: "#16a34a" }}>{fmt(data.total)}</div>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                          <div style={{ background: "#eff6ff", borderRadius: 8, padding: "8px 12px" }}>
+                            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 2 }}>💼 Acreditado al balance</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#2563eb" }}>{fmt(data.balance)}</div>
+                          </div>
+                          <div style={{ background: "#fef2f2", borderRadius: 8, padding: "8px 12px" }}>
+                            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 2 }}>🏦 Retirado a banco</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#dc2626" }}>{fmt(data.retirado)}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          {tab === "movimientos" && (
           {tab === "movimientos" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {movimientos.map(m => (

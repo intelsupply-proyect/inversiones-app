@@ -1055,7 +1055,7 @@ async function revertirParticipacion(part) {
     <Btn variant="success" style={{ padding: "5px 12px", fontSize: 11 }} onClick={() => setModalPago(p)}>Procesar pago</Btn>
   )}
   {["open","funded","draft"].includes(ordenActual.status) && p.status === "pending" && (
-    <Btn variant="danger" style={{ padding: "5px 12px", fontSize: 11 }} onClick={() => revertirParticipacion(p)}>↩ Revertir</Btn>
+   <Btn variant="danger" loading={revirtiendoId === p.participation_id} style={{ padding: "5px 12px", fontSize: 11 }} onClick={() => revertirParticipacion(p)}>↩ Revertir</Btn>
   )}
 </div>
             </div>

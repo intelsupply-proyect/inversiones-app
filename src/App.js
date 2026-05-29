@@ -940,30 +940,6 @@ async function revertirParticipacion(part) {
   } finally {
     setRevirtiendoId(null);
   }
-}
-    title: `¿Revertir participación de ${part.investor_name}?`, 
-    message: `Se devolverán ${fmt(part.amount)} al balance de ${part.investor_name}. Esta acción no se puede deshacer.`, 
-    confirmLabel: "Sí, revertir", 
-    confirmVariant: "warning" 
-  });
-  if (!ok) return;
-  try {
-    await supabase.rpc("record_capital_movement", {
-      p_investor_id: part.investor_id,
-      p_amount: parseFloat(part.amount),
-      p_type: "deposit",
-      p_description: `Reversión de participación — ${ordenActual.title}`,
-      p_participation_id: part.participation_id,
-    });
-    await supabase.from("participations").update({ status: "cancelled" }).eq("id", part.participation_id);
-    toast(`${fmt(part.amount)} devueltos a ${part.investor_name}`, "success");
-    loadParticipaciones();
-    onReload();
-  } catch (e) {
-    toast("Error al revertir la participación.", "error");
-  }
-}
-
   async function cerrarOrdenAnticipado() {
     const ok = await confirm({ title: "¿Cerrar orden anticipadamente?", message: `La orden "${ordenActual.code}" quedará como cerrada anticipadamente. Esta acción no se puede deshacer.`, confirmLabel: "Sí, cerrar", confirmVariant: "danger" });
     if (!ok) return;

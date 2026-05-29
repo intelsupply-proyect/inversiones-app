@@ -2800,7 +2800,9 @@ function AdminOCxCobrar({ profileId }) {
                           <div style={{ display: "flex", gap: 6 }}>
                             {est !== "pagado" && <Btn variant="success" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => { setModalPagar(oc); setFechaPagoReal(new Date().toISOString().split("T")[0]); }}>💰 Cobrar</Btn>}
                             <Btn variant="info" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => abrirEditar(oc)}>✏️</Btn>
-                            <Btn variant="purple" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => abrirCrearOrden(oc)}>📋</Btn>
+                           <Btn variant={oc.investment_order_id ? "success" : "purple"} style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => oc.investment_order_id ? null : abrirCrearOrden(oc)} disabled={!!oc.investment_order_id} title={oc.investment_order_id ? "Ya tiene orden de inversión creada" : "Crear orden de inversión"}>
+                              {oc.investment_order_id ? "✅" : "📋"}
+                            </Btn>
                             <Btn variant="danger" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => eliminarOC(oc.id)}>🗑️</Btn>
                           </div>
                         </td>

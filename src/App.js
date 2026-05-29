@@ -907,6 +907,13 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
     }
   }
 
+  async function guardarDescripcion() {
+  setSavingDesc(true);
+  await supabase.from("investment_orders").update({ description: nuevaDesc }).eq("id", ordenActual.id);
+  setOrdenActual({ ...ordenActual, description: nuevaDesc });
+  toast("Descripción actualizada", "success");
+  setEditDesc(false); setSavingDesc(false);
+}
   async function cerrarOrdenAnticipado() {
     const ok = await confirm({ title: "¿Cerrar orden anticipadamente?", message: `La orden "${ordenActual.code}" quedará como cerrada anticipadamente. Esta acción no se puede deshacer.`, confirmLabel: "Sí, cerrar", confirmVariant: "danger" });
     if (!ok) return;

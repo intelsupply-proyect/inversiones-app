@@ -999,11 +999,14 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
 </div>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <Badge status={p.status} />
-                {(["active","closed_early","completed"].includes(ordenActual.status)) && p.status === "active" && (
-                  <Btn variant="success" style={{ padding: "5px 12px", fontSize: 11 }} onClick={() => setModalPago(p)}>Procesar pago</Btn>
-                )}
-              </div>
+  <Badge status={p.status} />
+  {(["active","closed_early","completed"].includes(ordenActual.status)) && p.status === "active" && (
+    <Btn variant="success" style={{ padding: "5px 12px", fontSize: 11 }} onClick={() => setModalPago(p)}>Procesar pago</Btn>
+  )}
+  {["open","funded","draft"].includes(ordenActual.status) && p.status === "pending" && (
+    <Btn variant="danger" style={{ padding: "5px 12px", fontSize: 11 }} onClick={() => revertirParticipacion(p)}>↩ Revertir</Btn>
+  )}
+</div>
             </div>
           ))}
           {participaciones.length === 0 && <div style={{ padding: 20, textAlign: "center", color: "#94a3b8" }}>Sin participaciones aún</div>}

@@ -1217,7 +1217,7 @@ function ModalDetalleInversor({ inv, onClose }) {
   async function loadData() {
     setLoading(true);
     const [{ data: parts }, { data: movs }, { data: pags }] = await Promise.all([
-      supabase.from("participation_detail").select("*").eq("investor_id", inv.investor_id).order("created_at", { ascending: false }),
+      supabase.from("participation_detail").select("*").eq("investor_id", inv.investor_id).order("end_date", { ascending: false }),
       supabase.from("capital_movements").select("*").eq("investor_id", inv.investor_id).order("created_at", { ascending: false }),
       supabase.from("pagos_mensuales").select("*").eq("investor_id", inv.investor_id).order("anio,mes"),
     ]);

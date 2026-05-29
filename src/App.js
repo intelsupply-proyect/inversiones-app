@@ -940,7 +940,9 @@ async function revertirParticipacion(part) {
   } finally {
     setRevirtiendoId(null);
   }
-  async function cerrarOrdenAnticipado() {
+}
+
+async function cerrarOrdenAnticipado() {
     const ok = await confirm({ title: "¿Cerrar orden anticipadamente?", message: `La orden "${ordenActual.code}" quedará como cerrada anticipadamente. Esta acción no se puede deshacer.`, confirmLabel: "Sí, cerrar", confirmVariant: "danger" });
     if (!ok) return;
     await supabase.from("investment_orders").update({ status: "closed_early", closed_at: new Date().toISOString() }).eq("id", ordenActual.id);

@@ -912,27 +912,26 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
         </div>
       )}
 
-      {modalPago && (
-        <Modal open={true} onClose={() => setModalPago(null)} title="Procesar pago" maxWidth={420}>
-          <div style={{ background: "#f8fafc", borderRadius: 12, padding: 16, marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{modalPago.investor_name}</div>
-            {[
-              ["Capital invertido", fmt(modalPago.amount)],
-              ["Tasa pactada", `${(parseFloat(modalPago.interest_rate) * 100).toFixed(1)}%`],
-              ["Ganancia a pagar", fmt(parseFloat(modalPago.amount) * parseFloat(modalPago.interest_rate))],
-              ["Total a devolver", fmt(parseFloat(modalPago.amount) * (1 + parseFloat(modalPago.interest_rate)))],
-            ].map(([l, v]) => (
-              <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", borderBottom: "1px solid #e2e8f0" }}>
-                <span style={{ color: "#64748b" }}>{l}</span><span style={{ fontWeight: 600 }}>{v}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Btn variant="secondary" onClick={() => setModalPago(null)} style={{ flex: 1 }}>Cancelar</Btn>
-            <Btn variant="success" loading={procesandoPago} onClick={() => procesarPago(modalPago)} style={{ flex: 1 }}>💰 Devolver capital</Btn>
-          </div>
-        </Modal>
-      )}
+     {modalPago && (() => {
+  const startDate = modalPago.start_date || ordenActual.start_date;
+  const endDate = modalPago.end_date || ordenActual.end_date;
+  const diasTotales = startDate && endDate
+    ? Math.round((new Date(endDate) - new Date(startDate)) / (1000*60*60*24))
+    : parseFloat(ordenActual.term_months || 1) * 30;
+  const hoy = new Date();
+  const defaultFecha = hoy.toISOString().split("T")[0];
+  return (
+    <Modal open={true} onClose={() => setModalPago(null)} title="Procesar pago" maxWidth={460}>
+      <ModalPagoConFecha
+        part={modalPago}
+        ordenActual={ordenActual}
+        procesandoPago={procesandoPago}
+        onProcesar={procesarPago}
+        onCerrar={() => setModalPago(null)}
+      />
+    </Modal>
+  );
+})()}
     </Modal>
   );
 }

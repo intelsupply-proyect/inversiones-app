@@ -873,7 +873,7 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
 
   async function loadParticipaciones() {
     setLoading(true);
-    const { data } = await supabase.from("participation_detail").select("*").eq("order_id", orden.id);
+    const { data } = await supabase.from("participation_detail").select("*").eq("order_id", orden.id).neq("status", "cancelled");
     setParticipaciones(data || []);
     const { data: ord } = await supabase.from("order_summary").select("*").eq("id", orden.id).single();
     if (ord) setOrdenActual(ord);

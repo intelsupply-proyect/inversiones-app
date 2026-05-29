@@ -975,7 +975,6 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
   )}
 </div>
 
-<div style={{ marginBottom: 16 }}><ProgressBar value={parseFloat(ordenActual.funded_amount || 0)} max={parseFloat(ordenActual.required_amount)} color="#2563eb" /></div>
       <div style={{ marginBottom: 16 }}><ProgressBar value={parseFloat(ordenActual.funded_amount || 0)} max={parseFloat(ordenActual.required_amount)} color="#2563eb" /></div>
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {ordenActual.status === "draft" && <Btn onClick={() => onCambiarEstado(ordenActual, "open")} style={{ flex: 1 }}>Publicar orden</Btn>}

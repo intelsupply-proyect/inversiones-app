@@ -792,6 +792,72 @@ return urlData.publicUrl;
   );
 }
 
+function ModalPagoConFecha({ part, ordenActual, procesandoPago, onProcesar, onCerrar }) {
+  const hoy = new Date().toISOString().split("T")[0];
+  const [fechaPago, setFechaPago] = useState(hoy);
+
+  const startDate = part.start_date || ordenActual.start_date;
+  const endDate = part.end_date || ordenActual.end_date;
+
+  const diasTotales = startDate && endDate
+    ? Math.round((new Date(endDate + "T12:00:00") - new Date(startDate + "T12:00:00")) / (1000*60*60*24))
+    : parseFloat(ordenActual.term_months || 1) * 30;
+
+  const diasTranscurridos = startDate
+    ? Math.round((new Date(fechaPago + "T12:00:00") - new Date(startDate + "T12:00:00")) / (1000*60*60*24))
+    : diasTotales;
+
+  const diasEfectivos = Math.max(0, Math.min(diasTranscurridos, diasTotales));
+  const proporcion = diasTotales > 0 ? diasEfectivos / diasTotales : 1;
+  const interesTotal = parseFloat(part.amount) * parseFloat(part.interest_rate);
+  const interesProporcional = interesTotal * proporcion;
+  const total = parseFloat(part.amount) + interesProporcional;
+  const esPagoCompleto = diasEfectivos >= diasTotales;
+
+  return (
+    <>
+      <div style={{ background: esPagoCompleto ? "#f0fdf4" : "#fff7ed", borderRadius: 12, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: esPagoCompleto ? "#15803d" : "#c2410c", fontWeight: 600 }}>
+        {esPagoCompleto ? "✅ Pago al vencimiento completo" : `⚡ Pago anticipado — ${diasEfectivos} de ${diasTotales} días (${(proporcion * 100).toFixed(1)}%)`}
+      </div>
+      <Input
+        label="Fecha en que se realiza el pago *"
+        type="date"
+        value={fechaPago}
+        onChange={e => setFechaPago(e.target.value)}
+        style={{ marginBottom: 16 }}
+      />
+      <div style={{ background: "#f8fafc", borderRadius: 12, padding: 16, marginBottom: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>{part.investor_name}</div>
+        {[
+          ["Capital invertido", fmt(part.amount), "#0f172a"],
+          ["Tasa pactada", `${(parseFloat(part.interest_rate) * 100).toFixed(1)}%`, "#64748b"],
+          ["Días invertidos", `${diasEfectivos} de ${diasTotales} días`, "#64748b"],
+          ["Proporción", `${(proporcion * 100).toFixed(1)}%`, esPagoCompleto ? "#16a34a" : "#f59e0b"],
+          ["Interés a pagar", fmt(interesProporcional), "#16a34a"],
+          ["Total a devolver", fmt(total), "#7c3aed"],
+        ].map(([l, v, c]) => (
+          <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "6px 0", borderBottom: "1px solid #e2e8f0" }}>
+            <span style={{ color: "#64748b" }}>{l}</span>
+            <span style={{ fontWeight: 700, color: c }}>{v}</span>
+          </div>
+        ))}
+      </div>
+      {!esPagoCompleto && (
+        <div style={{ background: "#fef9c3", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#854d0e" }}>
+          💡 El interés se calcula proporcionalmente: <strong>{fmt(interesTotal)}</strong> × {(proporcion * 100).toFixed(1)}% = <strong>{fmt(interesProporcional)}</strong>
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <Btn variant="secondary" onClick={onCerrar} style={{ flex: 1 }}>Cancelar</Btn>
+        <Btn variant="success" loading={procesandoPago}
+          onClick={() => onProcesar(part, interesProporcional, total, fechaPago)}
+          style={{ flex: 1 }}>
+          💰 Devolver {fmt(total)}
+        </Btn>
+      </div>
+    </>
+  );
+}
 function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReload, profileId }) {
   const [participaciones, setParticipaciones] = useState([]);
   const [loading, setLoading] = useState(true);

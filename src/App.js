@@ -1206,7 +1206,6 @@ function ModalDetalleInversor({ inv, onClose }) {
   const [comprobantePreview, setComprobantePreview] = useState(null);
   const [savingComp, setSavingComp] = useState(false);
   const [tipoPago, setTipoPago] = useState("balance");
-  const [earnings, setEarnings] = useState([]);
   const compRef = useRef(null);
 
   const totalGanado = pagos.filter(p => p.status === "pagado").reduce((a, b) => a + parseFloat(b.monto_interes || 0), 0);

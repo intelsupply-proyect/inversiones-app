@@ -877,12 +877,12 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
     setLoading(false);
   }
 
-  async function procesarPago(part) {
-    if (procesandoPago) return;
-    setProcesandoPago(true);
-    try {
-      const interest = parseFloat(part.amount) * parseFloat(part.interest_rate);
-      const total = parseFloat(part.amount) + interest;
+ async function procesarPago(part, interesCalculado, totalCalculado, fechaPagoReal) {
+  if (procesandoPago) return;
+  setProcesandoPago(true);
+  try {
+    const interest = interesCalculado !== undefined ? interesCalculado : parseFloat(part.amount) * parseFloat(part.interest_rate);
+    const total = totalCalculado !== undefined ? totalCalculado : parseFloat(part.amount) + interest;
       await supabase.rpc("record_capital_movement", {
         p_investor_id: part.investor_id, p_amount: total, p_type: "investment_return",
         p_description: `Devolución capital + intereses orden ${ordenActual.code}`, p_participation_id: part.participation_id,

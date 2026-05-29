@@ -914,7 +914,33 @@ function ModalDetalleOrden({ orden, onClose, onActivar, onCambiarEstado, onReloa
   setEditDesc(false); setSavingDesc(false);
 }
 async function revertirParticipacion(part) {
+  if (revirtiendoId) return;
   const ok = await confirm({ 
+    title: `¿Revertir participación de ${part.investor_name}?`, 
+    message: `Se devolverán ${fmt(part.amount)} al balance de ${part.investor_name}. Esta acción no se puede deshacer.`, 
+    confirmLabel: "Sí, revertir", 
+    confirmVariant: "warning" 
+  });
+  if (!ok) return;
+  setRevirtiendoId(part.participation_id);
+  try {
+    await supabase.rpc("record_capital_movement", {
+      p_investor_id: part.investor_id,
+      p_amount: parseFloat(part.amount),
+      p_type: "deposit",
+      p_description: `Reversión de participación — ${ordenActual.title}`,
+      p_participation_id: part.participation_id,
+    });
+    await supabase.from("participations").update({ status: "cancelled" }).eq("id", part.participation_id);
+    toast(`${fmt(part.amount)} devueltos a ${part.investor_name}`, "success");
+    loadParticipaciones();
+    onReload();
+  } catch (e) {
+    toast("Error al revertir la participación.", "error");
+  } finally {
+    setRevirtiendoId(null);
+  }
+}
     title: `¿Revertir participación de ${part.investor_name}?`, 
     message: `Se devolverán ${fmt(part.amount)} al balance de ${part.investor_name}. Esta acción no se puede deshacer.`, 
     confirmLabel: "Sí, revertir", 

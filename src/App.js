@@ -1206,6 +1206,7 @@ function ModalDetalleInversor({ inv, onClose }) {
   const [comprobantePreview, setComprobantePreview] = useState(null);
   const [savingComp, setSavingComp] = useState(false);
   const [tipoPago, setTipoPago] = useState("balance");
+  const [earnings, setEarnings] = useState([]);
   const compRef = useRef(null);
 
   useEffect(() => { loadData(); }, []);

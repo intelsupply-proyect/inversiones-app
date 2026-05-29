@@ -2555,9 +2555,23 @@ function AdminOCxCobrar({ profileId }) {
       minimum_amount: parseFloat(formOrden.minimum_amount || 0), status: "draft",
       code: `OC-${Date.now()}`, created_by: profileId, imagen_url,
     });
-    if (error) { toast("Error al crear el borrador: " + error.message, "error"); setSavingOrden(false); return; }
+   if (error) { toast("Error al crear el borrador: " + error.message, "error"); setSavingOrden(false); return; }
+    
+    // Obtener el ID de la orden recién creada y vincularlo a la OC
+    const { data: ordenCreada } = await supabase.from("investment_orders")
+      .select("id").eq("code", `OC-${Date.now() - 1}`).single();
+    
+    // Vincular directamente buscando por título
+    const { data: ordenNueva } = await supabase.from("investment_orders")
+      .select("id").eq("title", formOrden.title).order("created_at", { ascending: false }).limit(1).single();
+    
+    if (ordenNueva) {
+      await supabase.from("ordenes_por_cobrar").update({ investment_order_id: ordenNueva.id }).eq("id", modalCrearOrden.id);
+    }
+    
     toast("Borrador creado. Ve a Órdenes para publicarlo.", "success");
     setModalCrearOrden(null); setImgOrden(null); setImgOrdenPreview(null); setSavingOrden(false);
+    loadData();
   }
 
   async function analizarDocumento() {
